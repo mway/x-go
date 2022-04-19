@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 	"go.mway.dev/x/testing/assert"
+	"go.mway.dev/x/testing/internal/requiremock"
 )
-
-// TODO(mway): use an interface for testing.T and mock to test negative cases
 
 var (
 	errA = errors.New("lower")
@@ -18,36 +19,88 @@ var (
 
 func TestEqualErrorChains(t *testing.T) {
 	cases := []struct {
-		expect error
-		actual error
+		expect     error
+		actual     error
+		expectFail bool
 	}{
 		{
-			expect: errC,
-			actual: errC,
+			expect:     errA,
+			actual:     errA,
+			expectFail: false,
+		},
+		{
+			expect:     errA,
+			actual:     errB,
+			expectFail: true,
 		},
 	}
 
 	for _, tt := range cases {
-		t.Run(tt.expect.Error(), func(t *testing.T) {
-			assert.EqualErrorChains(t, tt.expect, tt.actual)
+		name := fmt.Sprintf("%v vs %v", tt.expect, tt.actual)
+		t.Run(name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockT := requiremock.NewMockTestingT(ctrl)
+			if tt.expectFail {
+				mockT.EXPECT().
+					Errorf(gomock.Any(), gomock.Any()).
+					Do(func(msg string, args ...any) {
+						require.Len(t, args, 1)
+
+						str, ok := args[0].(string)
+						require.True(t, ok)
+						require.Contains(t, str, "Target error should be in err chain")
+					})
+			}
+
+			require.Equal(
+				t,
+				!tt.expectFail,
+				assert.EqualErrorChains(mockT, tt.expect, tt.actual),
+			)
 		})
 	}
 }
 
 func TestContainsErrorChain(t *testing.T) {
 	cases := []struct {
-		expect error
-		actual error
+		expect     error
+		actual     error
+		expectFail bool
 	}{
 		{
-			expect: errC,
-			actual: wrap(wrap(errC, "extra"), "layers"),
+			expect:     errC,
+			actual:     wrap(wrap(errC, "extra"), "layers"),
+			expectFail: false,
+		},
+		{
+			expect:     wrap(errC, "extra"),
+			actual:     wrap(wrap(errC, "extra"), "layers"),
+			expectFail: true,
 		},
 	}
 
 	for _, tt := range cases {
-		t.Run(tt.expect.Error(), func(t *testing.T) {
-			assert.ContainsErrorChain(t, tt.expect, tt.actual)
+		name := fmt.Sprintf("%v vs %v", tt.expect, tt.actual)
+		t.Run(name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockT := requiremock.NewMockTestingT(ctrl)
+			if tt.expectFail {
+				mockT.EXPECT().
+					Errorf(gomock.Any(), gomock.Any()).
+					Do(func(msg string, args ...any) {
+						require.Len(t, args, 1)
+
+						str, ok := args[0].(string)
+						require.True(t, ok)
+						require.Contains(t, str, "Target error should be in err chain")
+					})
+			}
+
+			assert.ContainsErrorChain(mockT, tt.expect, tt.actual)
 		})
 	}
 }

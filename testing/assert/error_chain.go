@@ -2,14 +2,18 @@ package assert
 
 import (
 	"errors"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 // EqualErrorChains asserts that an actual error chain is the same as an
 // expected error chain.
-func EqualErrorChains(t *testing.T, expect error, actual error, msgAndArgs ...any) bool {
+func EqualErrorChains(
+	t assert.TestingT,
+	expect error,
+	actual error,
+	msgAndArgs ...any,
+) bool {
 	for expect != nil && actual != nil {
 		if !assert.ErrorIs(t, actual, expect, msgAndArgs...) {
 			return false
@@ -25,7 +29,12 @@ func EqualErrorChains(t *testing.T, expect error, actual error, msgAndArgs ...an
 // ContainsErrorChain asserts that an actual error chain contains all of the
 // same underlying errors as the expected error chain, but allows for arbitrary
 // chain order.
-func ContainsErrorChain(t *testing.T, expect error, actual error, msgAndArgs ...any) bool {
+func ContainsErrorChain(
+	t assert.TestingT,
+	expect error,
+	actual error,
+	msgAndArgs ...any,
+) bool {
 	for expect != nil {
 		if !assert.ErrorIs(t, actual, expect, msgAndArgs...) {
 			return false
