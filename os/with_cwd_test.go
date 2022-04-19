@@ -101,14 +101,20 @@ func TestWithCwdEmptyTargetDir(t *testing.T) {
 }
 
 func TestWithCwdTargetDirDoesNotExist(t *testing.T) {
-	err := xos.WithCwd("/foo/bar/baz", func() {
-		require.FailNow(t, "WithCwd func argument should not be called")
-	})
-	require.Error(t, err)
-}
+	bad := []string{
+		"/foo/bar/baz",
+		"            ",
+		"!@#$%^&*()",
+		"`\x00",
+	}
 
-// orig dne
-// orig renamed
+	for _, dir := range bad {
+		err := xos.WithCwd(dir, func() {
+			require.FailNow(t, "WithCwd func argument should not be called")
+		})
+		require.Error(t, err)
+	}
+}
 
 func resolvedTempDir(t *testing.T) string {
 	dir, err := filepath.Abs(t.TempDir())
