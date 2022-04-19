@@ -25,6 +25,19 @@ func TestWithCwd(t *testing.T) {
 	requireCwd(t, orig)
 }
 
+func TestWithCwdSameDir(t *testing.T) {
+	orig := resolvedTempDir(t)
+	require.NoError(t, os.Chdir(orig))
+	requireCwd(t, orig)
+
+	err := xos.WithCwd(orig, func() {
+		requireCwd(t, orig)
+	})
+
+	require.NoError(t, err)
+	requireCwd(t, orig)
+}
+
 func TestWithCwdPanic(t *testing.T) {
 	orig := resolvedTempDir(t)
 	require.NoError(t, os.Chdir(orig))
@@ -34,6 +47,7 @@ func TestWithCwdPanic(t *testing.T) {
 		newdir = resolvedTempDir(t)
 		err    error
 	)
+
 	require.Panics(t, func() {
 		err = xos.WithCwd(newdir, func() {
 			requireCwd(t, newdir)
