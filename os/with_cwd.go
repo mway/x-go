@@ -28,11 +28,6 @@ func WithCwd(dir string, f func()) (err error) {
 
 	defer func() {
 		err = os.Chdir(orig)
-
-		// Re-panic if we're recovering.
-		if r := recover(); r != nil {
-			panic(r)
-		}
 	}()
 
 	f()
