@@ -33,6 +33,11 @@ func TestEqualErrorChains(t *testing.T) {
 			actual:     errB,
 			expectFail: true,
 		},
+		{
+			expect:     errA,
+			actual:     errors.New("random"),
+			expectFail: true,
+		},
 	}
 
 	for _, tt := range cases {
