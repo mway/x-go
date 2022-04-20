@@ -5,7 +5,10 @@ import (
 )
 
 // n.b. See with_cwd_internals_test.go.
-var _getwd = os.Getwd
+var (
+	_getwd = os.Getwd
+	_chdir = os.Chdir
+)
 
 // WithCwd attempts to change the working directory to dir and, if successful,
 // calls f. WithCwd expects dir to exist already; if dir does not exist, or is
@@ -25,7 +28,7 @@ func WithCwd(dir string, f func()) (err error) {
 		return
 	}
 
-	if err = os.Chdir(dir); err != nil {
+	if err = _chdir(dir); err != nil {
 		return
 	}
 
