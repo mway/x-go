@@ -28,7 +28,7 @@ const _localAddr = "127.0.0.1"
 
 var _listen = net.Listen
 
-// RandomListen returns a listener bound to a random port on the given addr.
+// ListenRandom returns a listener bound to a random port on the given addr.
 func ListenRandom(addr string) (net.Listener, error) {
 	l, err := _listen("tcp", net.JoinHostPort(addr, "0"))
 	if err != nil {
