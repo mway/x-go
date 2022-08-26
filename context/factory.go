@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"go.mway.dev/chrono/stopwatch"
+	"go.mway.dev/chrono/clock"
 )
 
 // ErrInvalidTimeout indicates that the given timeout value is invalid.
@@ -47,7 +47,7 @@ type DebouncedFactory struct {
 	ctx       context.Context
 	cancel    context.CancelFunc
 	fn        TimeoutFunc
-	stopwatch *stopwatch.Stopwatch
+	stopwatch clock.Stopwatch
 	prev      *contextPair
 	debounce  time.Duration
 	timeout   time.Duration
@@ -79,11 +79,6 @@ func NewDebouncedFactory(
 		)
 	}
 
-	sw, err := stopwatch.New(stopwatch.WithClock(options.Clock))
-	if err != nil {
-		return nil, err
-	}
-
 	var (
 		ctx, cancel = context.WithCancel(options.Context)
 		f           = &DebouncedFactory{
@@ -93,7 +88,7 @@ func NewDebouncedFactory(
 			fn:        options.ContextFunc,
 			prev:      &contextPair{},
 			timeout:   timeout,
-			stopwatch: sw,
+			stopwatch: options.Clock.Stopwatch(),
 		}
 	)
 
@@ -118,6 +113,7 @@ func (f *DebouncedFactory) Get() context.Context {
 	if f.stopwatch.Elapsed() >= f.debounce {
 		ctx, cancel = f.fn(f.ctx, f.timeout)
 		f.cas(ctx, cancel)
+		f.stopwatch.Reset()
 	}
 
 	return ctx
