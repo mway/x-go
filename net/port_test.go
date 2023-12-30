@@ -107,13 +107,13 @@ func newUncloseableListener(
 
 func (l uncloseableListener) Listen(
 	network string,
-	addr string,
+	hostport string,
 ) (net.Listener, error) {
 	if l.errorOnListen && l.err != nil {
 		return nil, l.err
 	}
 
-	x, err := net.ResolveTCPAddr("tcp", _localAddr+":12345")
+	x, err := net.ResolveTCPAddr(network, hostport)
 	if err != nil {
 		return nil, err
 	}
