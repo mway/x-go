@@ -21,6 +21,7 @@
 package os_test
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -134,6 +135,21 @@ func TestWithCwdTargetDirDoesNotExist(t *testing.T) {
 		})
 		require.Error(t, err)
 	}
+}
+
+func TestWithCwdErrorFunc(t *testing.T) {
+	orig := resolvedTempDir(t)
+	require.NoError(t, os.Chdir(orig))
+	requireCwd(t, orig)
+
+	var (
+		wantErr = errors.New(t.Name())
+		haveErr = xos.WithCwd(orig, func() error {
+			requireCwd(t, orig)
+			return wantErr
+		})
+	)
+	require.ErrorIs(t, haveErr, wantErr)
 }
 
 func resolvedTempDir(t *testing.T) string {
