@@ -18,30 +18,5 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE THE SOFTWARE.
 
-// Package sampling provides probabilistic sampling types and utilities.
-package sampling
-
-import (
-	_ "unsafe" // go:linkname
-)
-
-const (
-	// On is a Gate that always succeeds when tried.
-	On = Gate(1.0)
-	// Off is a Gate that always fails when tried.
-	Off = Gate(0.0)
-	// Coin is a Gate that flips a coin (i.e., 50/50).
-	Coin = Gate(0.5)
-)
-
-// Gate is a simple sampling gate in the range [0.0, 1.0].
-type Gate float64
-
-// Try makes an attempt against g's inherent probability.
-func (g Gate) Try() bool {
-	const _max = 1 << 24
-	return fastrandn(_max) >= _max-uint32(g*_max)
-}
-
-//go:linkname fastrandn runtime.fastrandn
-func fastrandn(uint32) uint32
+// Package os provides OS-related types and utilities.
+package os
