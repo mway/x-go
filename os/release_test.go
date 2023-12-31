@@ -85,6 +85,7 @@ func TestRelease_MacOS(t *testing.T) {
 		"sonoma": {
 			cmd: _catCommand("sw_vers-sonoma"),
 			want: ReleaseInfo{
+				Arch:     runtime.GOARCH,
 				OS:       "darwin",
 				Family:   "macos",
 				Version:  "14.0.0",
@@ -94,6 +95,7 @@ func TestRelease_MacOS(t *testing.T) {
 		"ventura": {
 			cmd: _catCommand("sw_vers-ventura"),
 			want: ReleaseInfo{
+				Arch:     runtime.GOARCH,
 				OS:       "darwin",
 				Family:   "macos",
 				Version:  "13.0.0",
@@ -103,25 +105,38 @@ func TestRelease_MacOS(t *testing.T) {
 		"monterey": {
 			cmd: _catCommand("sw_vers-monterey"),
 			want: ReleaseInfo{
+				Arch:     runtime.GOARCH,
 				OS:       "darwin",
 				Family:   "macos",
 				Version:  "12.0.0",
 				Codename: "monterey",
 			},
 		},
-		"legacy": {
-			cmd: _catCommand("sw_vers-legacy"),
+		"bigsur": {
+			cmd: _catCommand("sw_vers-bigsur"),
 			want: ReleaseInfo{
+				Arch:     runtime.GOARCH,
 				OS:       "darwin",
 				Family:   "macos",
 				Version:  "11.0.0",
+				Codename: "bigsur",
+			},
+		},
+		"legacy": {
+			cmd: _catCommand("sw_vers-legacy"),
+			want: ReleaseInfo{
+				Arch:     runtime.GOARCH,
+				OS:       "darwin",
+				Family:   "macos",
+				Version:  "10.0.0",
 				Codename: "legacy",
 			},
 		},
 		"error": {
 			cmd: _badCommand,
 			want: ReleaseInfo{
-				OS: "darwin",
+				Arch: runtime.GOARCH,
+				OS:   "darwin",
 			},
 		},
 	}
@@ -148,6 +163,7 @@ func TestRelease_Debian_OSRelease(t *testing.T) {
 				return os.ReadFile("testdata/os-release")
 			},
 			want: ReleaseInfo{
+				Arch:     runtime.GOARCH,
 				OS:       "linux",
 				Family:   "debian",
 				Version:  "12",
@@ -159,7 +175,8 @@ func TestRelease_Debian_OSRelease(t *testing.T) {
 				return nil, errors.New("error")
 			},
 			want: ReleaseInfo{
-				OS: "linux",
+				Arch: runtime.GOARCH,
+				OS:   "linux",
 			},
 		},
 	}
@@ -194,6 +211,7 @@ func TestRelease_Debian_LSBRelease(t *testing.T) {
 			"nominal": {
 				cmd: lsbRelease,
 				want: ReleaseInfo{
+					Arch:     runtime.GOARCH,
 					OS:       "linux",
 					Family:   "debian",
 					Version:  "12",
@@ -203,7 +221,8 @@ func TestRelease_Debian_LSBRelease(t *testing.T) {
 			"error": {
 				cmd: _badCommand,
 				want: ReleaseInfo{
-					OS: "linux",
+					Arch: runtime.GOARCH,
+					OS:   "linux",
 				},
 			},
 		}
@@ -226,6 +245,7 @@ func TestRelease_Debian_LSBRelease(t *testing.T) {
 func TestRelease_Unknown(t *testing.T) {
 	stub.With(&_runtimeGOOS, _runtimeGOOSUnsupported, func() {
 		want := ReleaseInfo{
+			Arch:     runtime.GOARCH,
 			OS:       _runtimeGOOSUnsupported(),
 			Family:   "unknown",
 			Version:  "unknown",

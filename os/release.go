@@ -30,6 +30,9 @@ import (
 )
 
 var (
+	_runtimeGOARCH = func() string {
+		return runtime.GOARCH
+	}
 	_runtimeGOOS = func() string {
 		return runtime.GOOS
 	}
@@ -51,6 +54,7 @@ var (
 
 // ReleaseInfo provides information about the current OS release.
 type ReleaseInfo struct {
+	Arch     string
 	OS       string
 	Family   string
 	Version  string
@@ -63,6 +67,7 @@ func Release() ReleaseInfo {
 }
 
 func loadRelease() (info ReleaseInfo) {
+	info.Arch = _runtimeGOARCH()
 	info.OS = _runtimeGOOS()
 	switch info.OS {
 	case "darwin":
@@ -177,6 +182,8 @@ func setDarwinCodename(dst *ReleaseInfo) {
 			dst.Codename = "ventura"
 		case strings.HasPrefix(dst.Version, "12."):
 			dst.Codename = "monterey"
+		case strings.HasPrefix(dst.Version, "11."):
+			dst.Codename = "bigsur"
 		default:
 			dst.Codename = "legacy"
 		}
