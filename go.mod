@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/google/uuid v1.5.0
 	github.com/stretchr/testify v1.7.2
+	go.mway.dev/errors v0.4.0
 )
 
 require (
