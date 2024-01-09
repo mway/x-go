@@ -37,7 +37,7 @@ var (
 // MkdirAllInherit calls [os.MkdirAll] on each ancestor in path, with each
 // descendant inheriting the mode of its parent.
 func MkdirAllInherit(path string) error {
-	paths := append([]string{path}, append(filepath.Ancestors(path), ".")...)
+	paths := append([]string{path}, filepath.Ancestors(path)...)
 	for i := len(paths) - 1; i >= 0; i-- {
 		mode, err := getDirPerm(paths[i])
 		if err != nil {
