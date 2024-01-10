@@ -24,6 +24,7 @@ package tempdir
 import (
 	"os"
 	"runtime/debug"
+	"strings"
 	"sync"
 
 	"go.mway.dev/errors"
@@ -85,7 +86,11 @@ func NewWithBase(dir string) (*Dir, error) {
 	pattern := "x-tempdir"
 	build, ok := debug.ReadBuildInfo()
 	if ok {
-		pattern = build.Path
+		pattern = strings.ToLower(strings.ReplaceAll(
+			build.Path,
+			string(os.PathSeparator),
+			"_",
+		))
 	}
 
 	var err error
