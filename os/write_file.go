@@ -28,8 +28,10 @@ import (
 )
 
 const (
-	_fileFlags = os.O_CREATE | os.O_TRUNC | os.O_WRONLY
-	_fileMode  = 0o644
+	// DefaultWriteFlags are default flags used for writing to a file.
+	DefaultWriteFlags = os.O_CREATE | os.O_TRUNC | os.O_WRONLY
+
+	_fileMode = 0o644
 )
 
 var (
@@ -96,5 +98,5 @@ func WriteReaderToFileWithFlags(
 
 // WriteReaderToFile creates path and copies the given reader to it.
 func WriteReaderToFile(path string, reader any) (written int, err error) {
-	return WriteReaderToFileWithFlags(path, reader, _fileFlags, _fileMode)
+	return WriteReaderToFileWithFlags(path, reader, DefaultWriteFlags, _fileMode)
 }
