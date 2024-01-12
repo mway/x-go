@@ -232,6 +232,7 @@ func stripPrefix(path string, prefix string) (string, bool, error) {
 		return path, true, nil
 	}
 
+	path = filepath.Clean(path)
 	idx := strings.IndexByte(path, _sep[0])
 	for idx > 0 {
 		matched, err := filepath.Match(prefix, path[:idx])
