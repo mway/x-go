@@ -169,7 +169,7 @@ func Extract(
 			return errors.Wrap(err, "failed to write to output")
 		}
 
-		_, err = fmt.Fprintln(options.Output, " ", fpath, "->", dstpath)
+		_, err = fmt.Fprintln(options.Output, "", fpath, "->", dstpath)
 		return errors.Wrap(err, "failed to write to output")
 	})
 
