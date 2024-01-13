@@ -29,7 +29,6 @@ import (
 
 	"go.mway.dev/errors"
 	xos "go.mway.dev/x/os"
-	"go.mway.dev/x/os/tempdir"
 	"golang.org/x/sys/unix"
 )
 
@@ -50,45 +49,43 @@ var (
 // exist, GetFile will make its parent directory if needed before writing; if
 // dst exists and is a directory, GetFile will use the basename of the URL to
 // inform the resulting filename.
-func GetFile(url string, dst string) error {
-	return tempdir.With(func(_ string) (err error) {
-		var resp *http.Response
-		if resp, err = _httpGet(url); err != nil {
-			return err
-		}
-
-		if resp.Body != nil {
-			defer func() {
-				err = errors.Join(err, errors.Wrap(
-					resp.Body.Close(),
-					"failed to close response body",
-				))
-			}()
-		}
-
-		var dstInfo fs.FileInfo
-		if dstInfo, err = _osStat(dst); err != nil {
-			if errors.Is(err, fs.ErrNotExist) {
-				err = _osMkdirAll(filepath.Dir(dst), 0o755)
-			}
-		}
-
-		switch {
-		case err != nil:
-			return err
-		case dstInfo != nil && dstInfo.IsDir():
-			if base := filepath.Base(url); len(base) > 0 {
-				dst = filepath.Join(dst, base)
-			}
-		}
-
-		if parent := filepath.Dir(dst); !existsAndWritable(parent) {
-			return errors.Wrap(ErrDestNotWritable, parent)
-		}
-
-		_, err = xos.WriteReaderToFile(dst, resp.Body)
+func GetFile(url string, dst string) (err error) {
+	var resp *http.Response
+	if resp, err = _httpGet(url); err != nil {
 		return err
-	})
+	}
+
+	if resp.Body != nil {
+		defer func() {
+			err = errors.Join(err, errors.Wrap(
+				resp.Body.Close(),
+				"failed to close response body",
+			))
+		}()
+	}
+
+	var dstInfo fs.FileInfo
+	if dstInfo, err = _osStat(dst); err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			err = _osMkdirAll(filepath.Dir(dst), 0o755)
+		}
+	}
+
+	switch {
+	case err != nil:
+		return err
+	case dstInfo != nil && dstInfo.IsDir():
+		if base := filepath.Base(url); len(base) > 0 {
+			dst = filepath.Join(dst, base)
+		}
+	}
+
+	if parent := filepath.Dir(dst); !existsAndWritable(parent) {
+		return errors.Wrap(ErrDestNotWritable, parent)
+	}
+
+	_, err = xos.WriteReaderToFile(dst, resp.Body)
+	return err
 }
 
 func existsAndWritable(path string) bool {
