@@ -9,6 +9,7 @@ require (
 	go.mway.dev/color v0.0.0-20220910164822-b14e9c5250ba
 	go.mway.dev/errors v0.4.0
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
+	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab
 )
 
 require (
@@ -32,7 +33,6 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	go.mway.dev/pool v0.1.1 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
-	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
 	golang.org/x/text v0.3.8 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
