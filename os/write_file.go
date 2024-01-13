@@ -98,5 +98,10 @@ func WriteReaderToFileWithFlags(
 
 // WriteReaderToFile creates path and copies the given reader to it.
 func WriteReaderToFile(path string, reader any) (written int, err error) {
-	return WriteReaderToFileWithFlags(path, reader, DefaultWriteFlags, _fileMode)
+	return WriteReaderToFileWithFlags(
+		path,
+		reader,
+		DefaultWriteFlags,
+		_fileMode,
+	)
 }
