@@ -48,6 +48,7 @@ type Options struct {
 	StripPrefix  string
 	IncludePaths map[string]string
 	ExcludePaths []string
+	Delete       bool
 }
 
 // With returns a new [Options] with opts merged on top of o.
@@ -77,6 +78,10 @@ func (o Options) apply(dst *Options) {
 
 	if len(o.ExcludePaths) > 0 {
 		dst.ExcludePaths = slices.Clone(o.ExcludePaths)
+	}
+
+	if o.Delete {
+		dst.Delete = true
 	}
 }
 
@@ -119,6 +124,14 @@ func IncludePaths(paths map[string]string) Option {
 func ExcludePaths(paths []string) Option {
 	return optionFunc(func(dst *Options) {
 		dst.ExcludePaths = slices.Clone(paths)
+	})
+}
+
+// Delete returns a new [Option] that configures [Extract] to delete any
+// archive directories from the destination before extracting them.
+func Delete(del bool) Option {
+	return optionFunc(func(dst *Options) {
+		dst.Delete = del
 	})
 }
 
