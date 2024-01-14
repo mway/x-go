@@ -139,6 +139,17 @@ func Extract(
 
 		parent := filepath.Dir(fpath)
 		if _, parentCreated := dirs[parent]; !parentCreated {
+			if options.Delete {
+				err = os.RemoveAll(parent)
+				if err != nil && !errors.Is(err, os.ErrNotExist) {
+					return errors.Wrapf(
+						err,
+						"failed to remove existing destination directory %q",
+						parent,
+					)
+				}
+			}
+
 			if err = xos.MkdirAllInherit(parent); err != nil {
 				return errors.Wrapf(
 					err,
