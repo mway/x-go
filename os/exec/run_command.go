@@ -31,6 +31,16 @@ import (
 	xio "go.mway.dev/x/io"
 )
 
+// ErrNotFound re-exports [exec.ErrNotFound] for convenience.
+var ErrNotFound = exec.ErrNotFound
+
+type (
+	// Error re-exports [exec.Error] for convenience.
+	Error = exec.Error
+	// ExitError re-exports [exec.ExitError] for convenience.
+	ExitError = exec.ExitError
+)
+
 // RunCommand runs the given program or executable with the given options.
 func RunCommand(name string, opts ...CommandOption) error {
 	cmd := exec.Command(name)
