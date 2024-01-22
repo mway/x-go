@@ -167,6 +167,7 @@ func (n *BasicNode[K, V]) Remove(
 	key K,
 ) (child *BasicNode[K, V], removed bool) {
 	if child, removed = n.children[key]; removed {
+		child.parent = nil
 		delete(n.children, key)
 	}
 	return
