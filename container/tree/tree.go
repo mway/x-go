@@ -22,6 +22,7 @@
 package tree
 
 import (
+	"errors"
 	"maps"
 	"slices"
 	"sort"
@@ -29,6 +30,14 @@ import (
 	"golang.org/x/exp/constraints"
 	xmaps "golang.org/x/exp/maps"
 )
+
+// ErrSkipSubtree is a sentinel value that can be returned by a [NodeWalker] to
+// skip the remainder of a subtree. This error halts iteration of that subtree
+// at the first handling parent.
+var ErrSkipSubtree = errors.New("skip subtree")
+
+// A NodeWalker is a function that controls how nodes are walked.
+type NodeWalker[K constraints.Ordered, V comparable] func(node *BasicNode[K, V]) error
 
 // BasicNode is a basic, arbitrarily-ordered, non-balancing, key/value tree.
 type BasicNode[K constraints.Ordered, V comparable] struct {
@@ -89,6 +98,9 @@ func (n *BasicNode[K, V]) Value() (value V) {
 
 // SetValue sets the node's value.
 func (n *BasicNode[K, V]) SetValue(value V) {
+	if n == nil {
+		return
+	}
 	n.value = value
 }
 
@@ -189,13 +201,26 @@ func (n *BasicNode[K, V]) Len() (total int) {
 	}
 }
 
-// Walk walks through the tree depth-first.
-func (n *BasicNode[K, V]) Walk(fn func(*BasicNode[K, V]) bool) bool {
+func handleWalkError(err error) (stop bool, unhandled error) {
 	switch {
-	case n == nil:
-		return true
-	case len(n.children) == 0:
-		return fn(n)
+	case err == nil:
+		return false, nil
+	case errors.Is(err, ErrSkipSubtree):
+		return true, nil
+	default:
+		return true, err
+	}
+}
+
+// Walk walks through the tree depth-first.
+func (n *BasicNode[K, V]) Walk(fn NodeWalker[K, V]) error {
+	if n == nil {
+		return nil
+	}
+
+	stop, err := handleWalkError(fn(n))
+	if stop || len(n.children) == 0 {
+		return err
 	}
 
 	keys := xmaps.Keys(n.children)
@@ -203,38 +228,39 @@ func (n *BasicNode[K, V]) Walk(fn func(*BasicNode[K, V]) bool) bool {
 		return keys[i] < keys[j]
 	})
 
-	if !fn(n) { // for n itself
-		return false
-	}
-
 	for _, key := range keys {
-		if !n.children[key].Walk(fn) {
-			return false
+		if stop, err = handleWalkError(n.children[key].Walk(fn)); stop {
+			return err
 		}
 	}
 
-	return true
+	return nil
 }
 
 // WalkRev walks through the tree depth-first in reverse.
-func (n *BasicNode[K, V]) WalkRev(fn func(*BasicNode[K, V]) bool) bool {
-	switch {
-	case n == nil:
-		return true
-	case len(n.children) == 0:
-		return fn(n)
+func (n *BasicNode[K, V]) WalkRev(fn NodeWalker[K, V]) error {
+	if n == nil {
+		return nil
 	}
 
-	keys := xmaps.Keys(n.children)
-	sort.Slice(keys, func(i int, j int) bool {
-		return keys[i] < keys[j]
-	})
+	var (
+		stop bool
+		err  error
+	)
 
-	for _, key := range keys {
-		if !n.children[key].WalkRev(fn) {
-			return false
+	if len(n.children) > 0 {
+		keys := xmaps.Keys(n.children)
+		sort.Slice(keys, func(i int, j int) bool {
+			return keys[i] < keys[j]
+		})
+
+		for _, key := range keys {
+			if stop, err = handleWalkError(n.children[key].WalkRev(fn)); stop {
+				return err
+			}
 		}
 	}
 
-	return fn(n) // for n itself
+	_, err = handleWalkError(fn(n))
+	return err
 }
