@@ -21,6 +21,8 @@
 package tree_test
 
 import (
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -31,6 +33,15 @@ func TestBasicNode(t *testing.T) {
 	var zero tree.BasicNode[string, string]
 	require.Zero(t, zero.Key())
 	require.Zero(t, zero.Value())
+	zero.SetValue(t.Name())
+	require.Equal(t, t.Name(), zero.Value())
+
+	require.NotPanics(t, func() {
+		var node *tree.BasicNode[string, string]
+		node.SetParent(nil)
+		node.SetValue("foo")
+		require.Equal(t, 0, node.Len())
+	})
 
 	root := tree.NewBasicNode(t.Name(), t.Name()+"value")
 	require.Equal(t, t.Name(), root.Key())
@@ -71,11 +82,11 @@ func TestBasicNode(t *testing.T) {
 		}
 		haveKeys []string
 	)
-	ok := root.Walk(func(node *tree.BasicNode[string, string]) bool {
+	err := root.Walk(func(node *tree.BasicNode[string, string]) error {
 		haveKeys = append(haveKeys, node.Key())
-		return true
+		return nil
 	})
-	require.True(t, ok)
+	require.NoError(t, err)
 	require.Equal(t, wantKeys, haveKeys)
 
 	var (
@@ -90,24 +101,24 @@ func TestBasicNode(t *testing.T) {
 		}
 		haveRevKeys []string
 	)
-	ok = root.WalkRev(func(node *tree.BasicNode[string, string]) bool {
+	err = root.WalkRev(func(node *tree.BasicNode[string, string]) error {
 		haveRevKeys = append(haveRevKeys, node.Key())
-		return true
+		return nil
 	})
-	require.True(t, ok)
+	require.NoError(t, err)
 	require.Equal(t, wantRevKeys, haveRevKeys)
 
 	var calls int
-	ok = root.Walk(func(*tree.BasicNode[string, string]) bool {
+	err = root.Walk(func(*tree.BasicNode[string, string]) error {
 		calls++
-		return false
+		return io.EOF
 	})
-	require.False(t, ok)
-	ok = root.WalkRev(func(*tree.BasicNode[string, string]) bool {
+	require.ErrorIs(t, err, io.EOF)
+	err = root.WalkRev(func(*tree.BasicNode[string, string]) error {
 		calls++
-		return false
+		return io.EOF
 	})
-	require.False(t, ok)
+	require.ErrorIs(t, err, io.EOF)
 	require.Equal(t, 2, calls)
 }
 
@@ -142,13 +153,13 @@ func TestBasicNode_EmptyOrNil(t *testing.T) {
 				require.Equal(t, 1, child.Len())
 
 				var calls int
-				tt.node.Walk(func(*tree.BasicNode[string, string]) bool {
+				tt.node.Walk(func(*tree.BasicNode[string, string]) error {
 					calls++
-					return true
+					return nil
 				})
-				tt.node.WalkRev(func(*tree.BasicNode[string, string]) bool {
+				tt.node.WalkRev(func(*tree.BasicNode[string, string]) error {
 					calls++
-					return true
+					return nil
 				})
 				require.Equal(t, tt.wantCalls*2, calls)
 			})
@@ -175,11 +186,11 @@ func TestBasicNode_Path(t *testing.T) {
 	)
 
 	var i int
-	a.Walk(func(n *tree.BasicNode[string, string]) bool {
+	a.Walk(func(n *tree.BasicNode[string, string]) error {
 		require.Equal(t, expect[i], n.Path())
 		require.Equal(t, expectRev[i], n.PathRev())
 		i++
-		return true
+		return nil
 	})
 }
 
@@ -198,9 +209,9 @@ func TestBasicNode_SetParent(t *testing.T) {
 		actual = make(map[string]int)
 	)
 
-	a.Walk(func(n *tree.BasicNode[string, string]) bool {
+	a.Walk(func(n *tree.BasicNode[string, string]) error {
 		actual[n.Key()]++
-		return true
+		return nil
 	})
 
 	require.Equal(t, expect, actual)
@@ -223,10 +234,151 @@ func TestBasicNode_Remove(t *testing.T) {
 		actual = make(map[string]int)
 	)
 
-	a.Walk(func(n *tree.BasicNode[string, string]) bool {
+	a.Walk(func(n *tree.BasicNode[string, string]) error {
 		actual[n.Key()]++
-		return true
+		return nil
 	})
 
 	require.Equal(t, expect, actual)
+}
+
+func TestBasicNode_WalkErrors(t *testing.T) {
+	root := tree.NewBasicNode(t.Name(), t.Name()+"value")
+	require.Equal(t, t.Name(), root.Key())
+	require.Equal(t, t.Name()+"value", root.Value())
+	require.Nil(t, root.Parent())
+	require.Nil(t, root.Children())
+	require.Nil(t, root.Child("child1"))
+	require.Equal(t, 1, root.Len())
+
+	child1 := root.Add("child1", "value")
+	require.Equal(t, root, child1.Parent())
+	require.Equal(t, child1, root.Child("child1"))
+	child1.Add("grandchild11", "value")
+	child1.Add("grandchild12", "value")
+	require.Len(t, child1.Children(), 2)
+	require.Equal(t, 3, child1.Len())
+	require.Equal(t, 4, root.Len())
+
+	child2 := root.Add("child2", "childv2")
+	require.Equal(t, root, child2.Parent())
+	require.Equal(t, child2, root.Child("child2"))
+	require.Len(t, root.Children(), 2)
+	child2.Add("grandchild21", "value")
+	child2.Add("grandchild22", "value")
+	require.Len(t, child2.Children(), 2)
+	require.Equal(t, 3, child2.Len())
+	require.Equal(t, 7, root.Len())
+
+	rootKey := t.Name()
+
+	cases := map[string]struct {
+		pred    func(key string) error
+		want    []string
+		wantRev []string
+		wantErr error
+	}{
+		"abort at child2": {
+			pred: func(key string) error {
+				if key == "child2" {
+					return io.EOF
+				}
+				return nil
+			},
+			want: []string{
+				rootKey,
+				"child1",
+				"grandchild11",
+				"grandchild12",
+			},
+			wantRev: []string{
+				"grandchild11",
+				"grandchild12",
+				"child1",
+				"grandchild21",
+				"grandchild22",
+			},
+			wantErr: io.EOF,
+		},
+		"no grandchildren": {
+			pred: func(key string) error {
+				if strings.HasPrefix(key, "grand") {
+					return tree.ErrSkipSubtree
+				}
+				return nil
+			},
+			want: []string{
+				rootKey,
+				"child1",
+				"child2",
+			},
+			wantRev: []string{
+				"child1",
+				"child2",
+				rootKey,
+			},
+			wantErr: nil,
+		},
+		"root only": {
+			pred: func(key string) error {
+				if key != rootKey {
+					return tree.ErrSkipSubtree
+				}
+				return nil
+			},
+			want: []string{
+				rootKey,
+			},
+			wantRev: []string{
+				rootKey,
+			},
+			wantErr: nil,
+		},
+		"no child1": {
+			pred: func(key string) error {
+				if key == "child1" {
+					return tree.ErrSkipSubtree
+				}
+				return nil
+			},
+			want: []string{
+				rootKey,
+				"child2",
+				"grandchild21",
+				"grandchild22",
+			},
+			wantRev: []string{
+				"grandchild11",
+				"grandchild12",
+				"grandchild21",
+				"grandchild22",
+				"child2",
+				rootKey,
+			},
+			wantErr: nil,
+		},
+	}
+
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			var (
+				seen   []string
+				walker = func(node *tree.BasicNode[string, string]) (err error) {
+					if err = tt.pred(node.Key()); err == nil {
+						seen = append(seen, node.Key())
+					}
+					return err
+				}
+			)
+
+			err := root.Walk(walker)
+			require.Equal(t, tt.want, seen)
+			require.ErrorIs(t, err, tt.wantErr)
+
+			seen = seen[:0]
+			err = root.WalkRev(walker)
+			require.Equal(t, tt.wantRev, seen)
+			require.ErrorIs(t, err, tt.wantErr)
+		})
+	}
 }
