@@ -43,29 +43,29 @@ func TestBasicNode(t *testing.T) {
 		require.Equal(t, 0, node.Len())
 	})
 
-	root := tree.NewBasicNode(t.Name(), t.Name()+"value")
+	root := tree.NewBasicNode(t.Name(), t.Name())
 	require.Equal(t, t.Name(), root.Key())
-	require.Equal(t, t.Name()+"value", root.Value())
+	require.Equal(t, t.Name(), root.Value())
 	require.Nil(t, root.Parent())
 	require.Nil(t, root.Children())
 	require.Nil(t, root.Child("child1"))
 	require.Equal(t, 1, root.Len())
 
-	child1 := root.Add("child1", "value")
+	child1 := root.Add("child1", "child1")
 	require.Equal(t, root, child1.Parent())
 	require.Equal(t, child1, root.Child("child1"))
-	child1.Add("grandchild11", "value")
-	child1.Add("grandchild12", "value")
+	child1.Add("grandchild11", "grandchild11")
+	child1.Add("grandchild12", "grandchild12")
 	require.Len(t, child1.Children(), 2)
 	require.Equal(t, 3, child1.Len())
 	require.Equal(t, 4, root.Len())
 
-	child2 := root.Add("child2", "childv2")
+	child2 := root.Add("child2", "child2")
 	require.Equal(t, root, child2.Parent())
 	require.Equal(t, child2, root.Child("child2"))
 	require.Len(t, root.Children(), 2)
-	child2.Add("grandchild21", "value")
-	child2.Add("grandchild22", "value")
+	child2.Add("grandchild21", "grandchild21")
+	child2.Add("grandchild22", "grandchild22")
 	require.Len(t, child2.Children(), 2)
 	require.Equal(t, 3, child2.Len())
 	require.Equal(t, 7, root.Len())
@@ -153,11 +153,11 @@ func TestBasicNode_EmptyOrNil(t *testing.T) {
 				require.Equal(t, 1, child.Len())
 
 				var calls int
-				tt.node.Walk(func(*tree.BasicNode[string, string]) error {
+				tt.node.Walk(func(*tree.BasicNode[string, string]) error { //nolint:errcheck
 					calls++
 					return nil
 				})
-				tt.node.WalkRev(func(*tree.BasicNode[string, string]) error {
+				tt.node.WalkRev(func(*tree.BasicNode[string, string]) error { //nolint:errcheck
 					calls++
 					return nil
 				})
@@ -186,7 +186,7 @@ func TestBasicNode_Path(t *testing.T) {
 	)
 
 	var i int
-	a.Walk(func(n *tree.BasicNode[string, string]) error {
+	a.Walk(func(n *tree.BasicNode[string, string]) error { //nolint:errcheck
 		require.Equal(t, expect[i], n.Path())
 		require.Equal(t, expectRev[i], n.PathRev())
 		i++
@@ -209,7 +209,7 @@ func TestBasicNode_SetParent(t *testing.T) {
 		actual = make(map[string]int)
 	)
 
-	a.Walk(func(n *tree.BasicNode[string, string]) error {
+	a.Walk(func(n *tree.BasicNode[string, string]) error { //nolint:errcheck
 		actual[n.Key()]++
 		return nil
 	})
@@ -234,7 +234,7 @@ func TestBasicNode_Remove(t *testing.T) {
 		actual = make(map[string]int)
 	)
 
-	a.Walk(func(n *tree.BasicNode[string, string]) error {
+	a.Walk(func(n *tree.BasicNode[string, string]) error { //nolint:errcheck
 		actual[n.Key()]++
 		return nil
 	})
