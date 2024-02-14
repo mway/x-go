@@ -9,6 +9,7 @@ require (
 	go.mway.dev/color v0.0.0-20220910164822-b14e9c5250ba
 	go.mway.dev/errors v0.4.0
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
+	golang.org/x/sync v0.6.0
 	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab
 )
 
