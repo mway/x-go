@@ -50,7 +50,7 @@ func TestStringToBytes(t *testing.T) {
 }
 
 func TestBytesToString(t *testing.T) {
-	cases := map[string]struct {
+	cases := map[string]struct { //nolint:govet
 		input  []byte
 		expect string
 	}{

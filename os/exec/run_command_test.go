@@ -43,7 +43,7 @@ var (
 )
 
 func TestRunCommand(t *testing.T) {
-	cases := map[string]struct {
+	cases := map[string]struct { //nolint:govet
 		giveName    string
 		giveOptions exec.CommandOption
 		checkError  func(*testing.T, error)

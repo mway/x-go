@@ -54,7 +54,7 @@ func TestWriteReaderToFile(t *testing.T) {
 			wantWrite:  true,
 		},
 		"io.Reader read error": {
-			newReader: func(t *testing.T) any {
+			newReader: func(_ *testing.T) any {
 				return erroringReader{
 					err: errRead,
 				}
@@ -72,7 +72,7 @@ func TestWriteReaderToFile(t *testing.T) {
 			wantWrite:  true,
 		},
 		"io.ReadCloser read error": {
-			newReader: func(t *testing.T) any {
+			newReader: func(_ *testing.T) any {
 				return erroringReadCloser{
 					Reader: erroringReader{
 						err: errRead,
@@ -108,7 +108,7 @@ func TestWriteReaderToFile(t *testing.T) {
 			wantWrite:  true,
 		},
 		"ReaderFunc error": {
-			newReader: func(t *testing.T) any {
+			newReader: func(_ *testing.T) any {
 				return func() (io.Reader, error) {
 					return nil, errReader
 				}
@@ -118,7 +118,7 @@ func TestWriteReaderToFile(t *testing.T) {
 			wantWrite:  false,
 		},
 		"ReaderFunc read error": {
-			newReader: func(t *testing.T) any {
+			newReader: func(_ *testing.T) any {
 				return func() (io.Reader, error) {
 					return erroringReader{
 						err: errRead,
@@ -140,7 +140,7 @@ func TestWriteReaderToFile(t *testing.T) {
 			wantWrite:  true,
 		},
 		"ReadCloserFunc error": {
-			newReader: func(t *testing.T) any {
+			newReader: func(_ *testing.T) any {
 				return func() (io.ReadCloser, error) {
 					return nil, errReader
 				}
@@ -150,7 +150,7 @@ func TestWriteReaderToFile(t *testing.T) {
 			wantWrite:  false,
 		},
 		"ReadCloserFunc read error": {
-			newReader: func(t *testing.T) any {
+			newReader: func(_ *testing.T) any {
 				return func() (io.ReadCloser, error) {
 					return erroringReadCloser{
 						Reader: erroringReader{

@@ -44,7 +44,7 @@ var _fullTree = map[string]string{
 }
 
 func TestExtract(t *testing.T) {
-	cases := map[string]struct {
+	cases := map[string]struct { //nolint:govet
 		giveArchives []string
 		giveOptions  []Option
 		wantTree     map[string]string
@@ -311,7 +311,7 @@ func TestExtractTempDirWithCallback(t *testing.T) {
 }
 
 func TestStripPrefix(t *testing.T) {
-	cases := map[string]struct {
+	cases := map[string]struct { //nolint:govet
 		givePath     string
 		givePrefix   string
 		wantPath     string
