@@ -23,6 +23,7 @@ package exec
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"os"
 	"os/exec"
@@ -43,7 +44,18 @@ type (
 
 // RunCommand runs the given program or executable with the given options.
 func RunCommand(name string, opts ...CommandOption) error {
-	cmd := exec.Command(name)
+	return RunCommandContext(context.Background(), name, opts...)
+}
+
+// RunCommandContext runs the given program or executable with the given
+// options. If the given context is done before the command returns, the
+// command will be killed.
+func RunCommandContext(
+	ctx context.Context,
+	name string,
+	opts ...CommandOption,
+) error {
+	cmd := exec.CommandContext(ctx, name)
 	for _, opt := range opts {
 		opt(cmd)
 	}
@@ -59,24 +71,57 @@ func RunCommand(name string, opts ...CommandOption) error {
 // RunAttachedCommand is a convenience alias for [RunCommand] where
 // [WithAttachedPipes] is appended to the provided options.
 func RunAttachedCommand(name string, opts ...CommandOption) error {
+	return RunAttachedCommandContext(context.Background(), name, opts...)
+}
+
+// RunAttachedCommandContext is a convenience alias for [RunCommandContext]
+// where [WithAttachedPipes] is appended to the provided options. If the given
+// context is done before the command returns, the command will be killed.
+func RunAttachedCommandContext(
+	ctx context.Context,
+	name string,
+	opts ...CommandOption,
+) error {
 	opts = append(slices.Clone(opts), WithAttachedPipes())
-	return RunCommand(name, opts...)
+	return RunCommandContext(ctx, name, opts...)
 }
 
 // RunSilentCommand is a convenience alias for [RunCommand] where
 // [WithNopPipes] is appended to the provided options.
 func RunSilentCommand(name string, opts ...CommandOption) error {
+	return RunSilentCommandContext(context.Background(), name, opts...)
+}
+
+// RunSilentCommandContext is a convenience alias for [RunCommand] where
+// [WithNopPipes] is appended to the provided options. If the given context is
+// done before the command returns, the command will be killed.
+func RunSilentCommandContext(
+	ctx context.Context,
+	name string,
+	opts ...CommandOption,
+) error {
 	opts = append(slices.Clone(opts), WithStdout(xio.Nop), WithStderr(xio.Nop))
-	return RunCommand(name, opts...)
+	return RunCommandContext(ctx, name, opts...)
 }
 
 // RunCommandOutput calls [RunCommand] with the given name and options, and
 // returns the command's standard output.
 func RunCommandOutput(name string, opts ...CommandOption) (string, error) {
+	return RunCommandContextOutput(context.Background(), name, opts...)
+}
+
+// RunCommandContextOutput calls [RunCommand] with the given name and options,
+// and returns the command's standard output. If the given context is done
+// before the command returns, the command will be killed.
+func RunCommandContextOutput(
+	ctx context.Context,
+	name string,
+	opts ...CommandOption,
+) (string, error) {
 	buf := bytes.NewBuffer(nil)
 
 	opts = append(slices.Clone(opts), WithStdout(buf))
-	if err := RunCommand(name, opts...); err != nil {
+	if err := RunCommandContext(ctx, name, opts...); err != nil {
 		return "", err
 	}
 
@@ -89,13 +134,25 @@ func RunCommandSplitOutput(
 	name string,
 	opts ...CommandOption,
 ) (string, string, error) {
+	return RunCommandContextSplitOutput(context.Background(), name, opts...)
+}
+
+// RunCommandContextSplitOutput calls [RunCommand] with the given name and
+// options, and returns the command's standard output and standard error
+// individually. If the given context is done before the command returns, the
+// command will be killed.
+func RunCommandContextSplitOutput(
+	ctx context.Context,
+	name string,
+	opts ...CommandOption,
+) (string, string, error) {
 	var (
 		outbuf = bytes.NewBuffer(nil)
 		errbuf = bytes.NewBuffer(nil)
 	)
 
 	opts = append(slices.Clone(opts), WithStdout(outbuf), WithStderr(errbuf))
-	if err := RunCommand(name, opts...); err != nil {
+	if err := RunCommandContext(ctx, name, opts...); err != nil {
 		return "", "", err
 	}
 
@@ -108,10 +165,22 @@ func RunCommandCombinedOutput(
 	name string,
 	opts ...CommandOption,
 ) (string, error) {
+	return RunCommandContextCombinedOutput(context.Background(), name, opts...)
+}
+
+// RunCommandContextCombinedOutput calls [RunCommand] with the given name and
+// options, and returns the command's standard output and standard error
+// combined. If the given context is done before the command returns, the
+// command will be killed.
+func RunCommandContextCombinedOutput(
+	ctx context.Context,
+	name string,
+	opts ...CommandOption,
+) (string, error) {
 	buf := bytes.NewBuffer(nil)
 
 	opts = append(opts, WithStdout(buf), WithStderr(buf))
-	if err := RunCommand(name, opts...); err != nil {
+	if err := RunCommandContext(ctx, name, opts...); err != nil {
 		return "", err
 	}
 

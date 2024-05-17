@@ -272,7 +272,7 @@ func TestBasicNode_WalkErrors(t *testing.T) {
 
 	rootKey := t.Name()
 
-	cases := map[string]struct {
+	cases := map[string]struct { //nolint:govet
 		pred    func(key string) error
 		want    []string
 		wantRev []string
