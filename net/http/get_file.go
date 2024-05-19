@@ -22,6 +22,7 @@
 package http
 
 import (
+	"context"
 	"io/fs"
 	"net/http"
 	"os"
@@ -37,7 +38,7 @@ var (
 	// that is not writable.
 	ErrDestNotWritable = errors.New("destination is not writable")
 
-	_httpGet    = http.Get
+	_clientDo   = http.DefaultClient.Do
 	_osStat     = os.Stat
 	_osMkdirAll = os.MkdirAll
 	_unixAccess = unix.Access
@@ -50,18 +51,39 @@ var (
 // dst exists and is a directory, GetFile will use the basename of the URL to
 // inform the resulting filename.
 func GetFile(url string, dst string) (err error) {
-	var resp *http.Response
-	if resp, err = _httpGet(url); err != nil {
+	return GetFileContext(context.Background(), url, dst)
+}
+
+// GetFileContext retrieves a file referenced by the given url and writes it to
+// the given destination, returning any errors in the process. The resulting
+// file may have been written despite returning a non-nil error. If dst does
+// not exist, GetFile will make its parent directory if needed before writing;
+// if dst exists and is a directory, GetFile will use the basename of the URL
+// to inform the resulting filename.
+//
+//nolint:gocyclo
+func GetFileContext(ctx context.Context, url string, dst string) (err error) {
+	var (
+		req  *http.Request
+		resp *http.Response
+	)
+
+	req, err = http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
 		return err
 	}
 
-	if resp.Body != nil {
+	resp, err = _clientDo(req)
+	if resp != nil && resp.Body != nil {
 		defer func() {
 			err = errors.Join(err, errors.Wrap(
 				resp.Body.Close(),
 				"failed to close response body",
 			))
 		}()
+	}
+	if err != nil {
+		return err
 	}
 
 	var dstInfo fs.FileInfo
