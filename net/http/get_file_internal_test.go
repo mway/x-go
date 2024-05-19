@@ -43,23 +43,31 @@ func TestGetFile_Nominal(t *testing.T) {
 	)
 
 	err := tempdir.With(func(dst string) {
-		stub.With(&_httpGet, newHTTPGetFunc(t, giveURL, t.Name(), nil), func() {
-			dst = filepath.Join(dst, wantFile)
-			require.NoError(t, GetFile(giveURL, dst))
+		stub.With(
+			&_clientDo,
+			newClientDoFunc(t, giveURL, t.Name(), nil),
+			func() {
+				dst = filepath.Join(dst, wantFile)
+				require.NoError(t, GetFile(giveURL, dst))
 
-			raw, err := os.ReadFile(dst)
-			require.NoError(t, err)
-			require.Equal(t, wantContent, string(raw))
-		})
+				raw, err := os.ReadFile(dst)
+				require.NoError(t, err)
+				require.Equal(t, wantContent, string(raw))
+			},
+		)
 	})
 	require.NoError(t, err)
 }
 
 func TestGetFile_HTTPGetError(t *testing.T) {
 	wantErr := errors.New(t.Name())
-	stub.With(&_httpGet, newHTTPGetFunc(t, "http://foo", "", wantErr), func() {
-		require.ErrorIs(t, GetFile("http://foo", ""), wantErr)
-	})
+	stub.With(
+		&_clientDo,
+		newClientDoFunc(t, "http://foo", "", wantErr),
+		func() {
+			require.ErrorIs(t, GetFile("http://foo", ""), wantErr)
+		},
+	)
 }
 
 func TestGetFile_HTTPResponseBodyCloseError(t *testing.T) {
@@ -68,20 +76,18 @@ func TestGetFile_HTTPResponseBodyCloseError(t *testing.T) {
 		wantFile    = "baz.bat"
 		wantContent = t.Name()
 		wantErr     = errors.New(t.Name())
-		newRequest  = func(string) (*http.Response, error) { //nolint:unparam
-			resp, err := newHTTPGetFunc(t, giveURL, t.Name(), nil)(giveURL)
-			require.NoError(t, err)
-
-			resp.Body = testReader{
-				reader:   resp.Body,
-				closeErr: wantErr,
-			}
-			return resp, nil
+		newRequest  = func(*http.Request) (*http.Response, error) { //nolint:unparam
+			return &http.Response{
+				Body: testReader{
+					reader:   io.NopCloser(bytes.NewBufferString(t.Name())),
+					closeErr: wantErr,
+				},
+			}, nil
 		}
 	)
 
 	err := tempdir.With(func(dst string) {
-		stub.With(&_httpGet, newRequest, func() {
+		stub.With(&_clientDo, newRequest, func() {
 			dst = filepath.Join(dst, wantFile)
 			require.ErrorIs(t, GetFile(giveURL, dst), wantErr)
 
@@ -104,12 +110,16 @@ func TestGetFile_OSStatError(t *testing.T) {
 	)
 
 	err := tempdir.With(func(dst string) {
-		stub.With(&_httpGet, newHTTPGetFunc(t, giveURL, t.Name(), nil), func() {
-			stub.With(&_osStat, osStat, func() {
-				dst = filepath.Join(dst, wantFile)
-				require.ErrorIs(t, GetFile(giveURL, dst), wantStatErr)
-			})
-		})
+		stub.With(
+			&_clientDo,
+			newClientDoFunc(t, giveURL, t.Name(), nil),
+			func() {
+				stub.With(&_osStat, osStat, func() {
+					dst = filepath.Join(dst, wantFile)
+					require.ErrorIs(t, GetFile(giveURL, dst), wantStatErr)
+				})
+			},
+		)
 	})
 	require.NoError(t, err)
 }
@@ -125,12 +135,16 @@ func TestGetFile_OSMkdirAllError(t *testing.T) {
 	)
 
 	err := tempdir.With(func(dst string) {
-		stub.With(&_httpGet, newHTTPGetFunc(t, giveURL, t.Name(), nil), func() {
-			stub.With(&_osMkdirAll, mkdirAll, func() {
-				dst = filepath.Join(dst, "foo", wantFile)
-				require.ErrorIs(t, GetFile(giveURL, dst), wantMkdirError)
-			})
-		})
+		stub.With(
+			&_clientDo,
+			newClientDoFunc(t, giveURL, t.Name(), nil),
+			func() {
+				stub.With(&_osMkdirAll, mkdirAll, func() {
+					dst = filepath.Join(dst, "foo", wantFile)
+					require.ErrorIs(t, GetFile(giveURL, dst), wantMkdirError)
+				})
+			},
+		)
 	})
 	require.NoError(t, err)
 }
@@ -145,12 +159,16 @@ func TestGetFile_DestNotWritable(t *testing.T) {
 	)
 
 	err := tempdir.With(func(dst string) {
-		stub.With(&_httpGet, newHTTPGetFunc(t, giveURL, t.Name(), nil), func() {
-			stub.With(&_unixAccess, unixAccess, func() {
-				dst = filepath.Join(dst, "foo", wantFile)
-				require.ErrorIs(t, GetFile(giveURL, dst), ErrDestNotWritable)
-			})
-		})
+		stub.With(
+			&_clientDo,
+			newClientDoFunc(t, giveURL, t.Name(), nil),
+			func() {
+				stub.With(&_unixAccess, unixAccess, func() {
+					dst = filepath.Join(dst, "foo", wantFile)
+					require.ErrorIs(t, GetFile(giveURL, dst), ErrDestNotWritable)
+				})
+			},
+		)
 	})
 	require.NoError(t, err)
 }
@@ -162,27 +180,33 @@ func TestGetFile_DestIsDir(t *testing.T) {
 	)
 
 	err := tempdir.With(func(dst string) {
-		stub.With(&_httpGet, newHTTPGetFunc(t, giveURL, t.Name(), nil), func() {
-			dst = filepath.Join(dst, "foo", wantFile)
-			dir := filepath.Dir(dst)
-			require.NoError(t, os.Mkdir(dir, 0o755))
-			require.NoError(t, GetFile(giveURL, dir))
+		stub.With(
+			&_clientDo,
+			newClientDoFunc(t, giveURL, t.Name(), nil),
+			func() {
+				dst = filepath.Join(dst, "foo", wantFile)
+				dir := filepath.Dir(dst)
+				require.NoError(t, os.Mkdir(dir, 0o755))
+				require.NoError(t, GetFile(giveURL, dir))
 
-			_, err := os.ReadFile(dst)
-			require.NoError(t, err)
-		})
+				_, err := os.ReadFile(dst)
+				require.NoError(t, err)
+			},
+		)
 	})
 	require.NoError(t, err)
 }
 
-func newHTTPGetFunc(
+func newClientDoFunc(
 	t *testing.T,
 	wantURL string,
 	contents string,
 	err error,
-) func(string) (*http.Response, error) {
-	return func(url string) (*http.Response, error) {
-		require.Equal(t, wantURL, url)
+) func(*http.Request) (*http.Response, error) {
+	return func(req *http.Request) (*http.Response, error) {
+		require.NotNil(t, req)
+		require.NotNil(t, req.URL)
+		require.Equal(t, wantURL, req.URL.String())
 
 		if err != nil {
 			return nil, err
