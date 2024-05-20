@@ -17,32 +17,32 @@ jobs:
     strategy:
       matrix:
         go: [stable, oldstable]
+        include:
+          - go: stable
+            golangci: v1.58
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
+
       - name: Build
         run: go build -v ./...
+
       - name: Test
         run: go test -v -race -coverprofile cover.out ./...
-      - name: Prepare Coverage
-        run: go tool cover -html=cover.out -o cover.html
-      - name: Upload Coverage
-        uses: codecov/codecov-action@v3
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-          cache-dependency-path: "**/go.sum"
+
       - name: Lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v6
+        if: matrix.golangci
         with:
-          version: latest
+          version: ${{ matrix.golangci }}
+
+      - name: Prepare Coverage
+        run: go tool cover -html cover.out -o cover.html
+
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v4
