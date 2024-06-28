@@ -29,17 +29,18 @@ var (
 	// Nop is an [io.ReadWriteCloser] that does nothing.
 	Nop io.ReadWriteCloser = nop{}
 	// NopReader is an [io.Reader] that reads no data and always returns EOF.
-	NopReader io.Reader = Nop
+	NopReader io.Reader = nop{}
 	// NopReadCloser is an [io.ReadCloser] that reads no data, always returns
 	// EOF, and does not error on close.
-	NopReadCloser io.ReadCloser = Nop
+	NopReadCloser io.ReadCloser = nop{}
 	// NopWriter is an [io.Writer] that writes no data and always returns nil.
-	NopWriter io.Writer = Nop
+	NopWriter io.Writer = nop{}
 	// NopWriteCloser is an [io.WriteCloser] that writes no data, always
 	// returns nil, and does not error on close.
-	NopWriteCloser io.WriteCloser = Nop
-
-	_ io.StringWriter = nop{}
+	NopWriteCloser io.WriteCloser = nop{}
+	// NopStringWriter is an [io.StringWriter] that writes no data and always
+	// returns nil.
+	NopStringWriter io.StringWriter = nop{}
 )
 
 type nop struct{}
