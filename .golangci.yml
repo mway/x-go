@@ -41,7 +41,6 @@ linters-settings:
     min-complexity: 10
   govet:
     enable-all: true
-    # shadow: true
   lll:
     line-length: 100
   misspell:
