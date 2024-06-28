@@ -20,6 +20,10 @@
 
 package env
 
+import (
+	"go.mway.dev/x/stub"
+)
+
 func osLookupEnvReturning(value string, ok bool) func(string) (string, bool) {
 	return func(string) (string, bool) {
 		return value, ok
@@ -39,15 +43,5 @@ func osUnsetenvReturning(err error) func(string) error {
 }
 
 func withDummyPath(path string, fn func()) {
-	withStub(&_osLookupEnv, osLookupEnvReturning(path, true), fn)
-}
-
-func withStub[T any](dst *T, stub T, fn func()) {
-	orig := *dst
-	defer func() {
-		*dst = orig
-	}()
-
-	*dst = stub
-	fn()
+	stub.With(&_osLookupEnv, osLookupEnvReturning(path, true), fn)
 }

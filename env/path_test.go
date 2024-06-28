@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.mway.dev/x/stub"
 )
 
 func TestPath(t *testing.T) {
@@ -52,7 +53,7 @@ func TestPath_Append_Empty(t *testing.T) {
 func TestPath_Prepend_Error(t *testing.T) {
 	withDummyPath(t.Name(), func() {
 		wantErr := errors.New("setenv error")
-		withStub(&_osSetenv, osSetenvReturning(wantErr), func() {
+		stub.With(&_osSetenv, osSetenvReturning(wantErr), func() {
 			path := NewPath()
 			_, err := path.Prepend("foo")
 			require.ErrorIs(t, err, wantErr)
@@ -66,7 +67,7 @@ func TestPath_Prepend_Error(t *testing.T) {
 func TestPath_Append_Error(t *testing.T) {
 	withDummyPath(t.Name(), func() {
 		wantErr := errors.New("setenv error")
-		withStub(&_osSetenv, osSetenvReturning(wantErr), func() {
+		stub.With(&_osSetenv, osSetenvReturning(wantErr), func() {
 			path := NewPath()
 			_, err := path.Append("foo")
 			require.ErrorIs(t, err, wantErr)
@@ -87,7 +88,7 @@ func TestPath_Prepend_Empty(t *testing.T) {
 func TestPath_Restore_Error(t *testing.T) {
 	withDummyPath(t.Name(), func() {
 		wantErr := errors.New("setenv error")
-		withStub(&_osSetenv, osSetenvReturning(wantErr), func() {
+		stub.With(&_osSetenv, osSetenvReturning(wantErr), func() {
 			path := NewPath()
 			require.ErrorIs(t, path.Restore(), wantErr)
 			require.Panics(t, path.MustRestore)

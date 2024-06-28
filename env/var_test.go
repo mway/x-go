@@ -28,6 +28,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"go.mway.dev/x/stub"
 )
 
 func TestVar_NotExists(t *testing.T) {
@@ -117,7 +118,7 @@ func TestVar_Clone(t *testing.T) {
 
 func TestVar_Set_Error(t *testing.T) {
 	err := errors.New("setenv error")
-	withStub(&_osSetenv, osSetenvReturning(err), func() {
+	stub.With(&_osSetenv, osSetenvReturning(err), func() {
 		v := NewVar("test")
 		require.ErrorIs(t, v.Set("this will error"), err)
 		require.Panics(t, func() {
@@ -130,14 +131,14 @@ func TestVar_Restore_Error(t *testing.T) {
 	err := errors.New("setenv/unsetenv error")
 
 	// Does not exist; uses os.Unsetenv
-	withStub(&_osUnsetenv, osUnsetenvReturning(err), func() {
+	stub.With(&_osUnsetenv, osUnsetenvReturning(err), func() {
 		v := NewVar("test")
 		require.ErrorIs(t, v.Restore(), err)
 		require.Panics(t, v.MustRestore)
 	})
 
 	// Exists; uses os.Setenv
-	withStub(&_osSetenv, osSetenvReturning(err), func() {
+	stub.With(&_osSetenv, osSetenvReturning(err), func() {
 		require.NoError(t, os.Setenv("test", "test"))
 		v := NewVar("test")
 		require.ErrorIs(t, v.Restore(), err)
@@ -147,7 +148,7 @@ func TestVar_Restore_Error(t *testing.T) {
 
 func TestVar_Unset_Error(t *testing.T) {
 	err := errors.New("setenv error")
-	withStub(&_osUnsetenv, osUnsetenvReturning(err), func() {
+	stub.With(&_osUnsetenv, osUnsetenvReturning(err), func() {
 		v := NewVar("test")
 		require.ErrorIs(t, v.Unset(), err)
 		require.Panics(t, v.MustUnset)
