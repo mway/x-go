@@ -85,9 +85,9 @@ func TestDir_InvalidFunc(t *testing.T) {
 	d, err := tempdir.New()
 	require.NoError(t, err)
 
-	require.ErrorIs(t, d.With(nil), tempdir.ErrInvalidFunc)
-	require.ErrorIs(t, d.With("foo"), tempdir.ErrInvalidFunc)
-	require.ErrorIs(t, d.With(func() { /* bad */ }), tempdir.ErrInvalidFunc)
+	require.ErrorIs(t, d.With(nil), tempdir.ErrInvalidFuncType)
+	require.ErrorIs(t, d.With("foo"), tempdir.ErrInvalidFuncType)
+	require.ErrorIs(t, d.With(func() { /* bad */ }), tempdir.ErrInvalidFuncType)
 }
 
 func requireInValidTempDir(t *testing.T, path string) {

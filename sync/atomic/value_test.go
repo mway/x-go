@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.mway.dev/x/ptr"
+	"go.mway.dev/x/container/ptr"
 	"go.mway.dev/x/sync/atomic"
 )
 
@@ -29,7 +29,7 @@ func TestValue_Load(t *testing.T) {
 			},
 		},
 		"struct pointer": {
-			give: ptr.Of(testStruct{t.Name()}),
+			give: ptr.To(testStruct{t.Name()}),
 			validate: func(x any) bool {
 				_, ok := x.(*testStruct)
 				return ok

@@ -32,8 +32,8 @@ import (
 )
 
 var (
-	// ErrInvalidFunc indicates that an invalid type was provided.
-	ErrInvalidFunc = errors.New("invalid TempDirFunc")
+	// ErrInvalidFuncType indicates that an invalid type was provided.
+	ErrInvalidFuncType = errors.New("invalid func type")
 
 	_osMkdirTemp = os.MkdirTemp
 	_osRemoveAll = os.RemoveAll
@@ -130,7 +130,7 @@ func (d *Dir) With(fn any) error {
 			return f(d.path)
 		}
 	default:
-		return errors.Wrapf(ErrInvalidFunc, "%T", fn)
+		return errors.Wrapf(ErrInvalidFuncType, "%T", fn)
 	}
 
 	return xos.WithCwd(d.path, wrapper)
