@@ -31,6 +31,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.mway.dev/x/stub"
 )
 
 var _fullTree = map[string]string{
@@ -90,6 +91,15 @@ func TestExtract(t *testing.T) {
 			wantTree:    _fullTree,
 			wantMissing: nil,
 			wantErr:     nil,
+		},
+		"dne": {
+			giveArchives: []string{
+				"testdata/does-not-exist.tgz",
+			},
+			giveOptions: nil,
+			wantTree:    nil,
+			wantMissing: nil,
+			wantErr:     os.ErrNotExist,
 		},
 		"include paths": {
 			giveArchives: []string{
@@ -221,6 +231,145 @@ func TestExtract(t *testing.T) {
 	}
 }
 
+func TestExtract_Errors(t *testing.T) {
+	t.Run("strip prefix", func(t *testing.T) {
+		var (
+			wantErr          = errors.New(t.Name())
+			badFilepathMatch = func(string, string) (bool, error) {
+				return false, wantErr
+			}
+		)
+		stub.With(&_filepathMatch, badFilepathMatch, func() {
+			const archive = "testdata/foo.tgz"
+			err := Extract(
+				context.Background(),
+				t.TempDir(),
+				archive,
+				StripPrefix("testdata"),
+			)
+			require.ErrorIs(t, err, wantErr)
+			require.ErrorContains(t, err, "failed to strip prefix")
+		})
+	})
+
+	t.Run("exclude path", func(t *testing.T) {
+		var (
+			wantErr          = errors.New(t.Name())
+			badFilepathMatch = func(string, string) (bool, error) {
+				return false, wantErr
+			}
+		)
+		stub.With(&_filepathMatch, badFilepathMatch, func() {
+			const archive = "testdata/foo.tgz"
+			err := Extract(
+				context.Background(),
+				t.TempDir(),
+				archive,
+				ExcludePaths([]string{"testdata"}),
+			)
+			require.ErrorIs(t, err, wantErr)
+			require.ErrorContains(t, err, "bad exclude path pattern")
+		})
+	})
+
+	t.Run("include path", func(t *testing.T) {
+		var (
+			wantErr          = errors.New(t.Name())
+			badFilepathMatch = func(string, string) (bool, error) {
+				return false, wantErr
+			}
+		)
+		stub.With(&_filepathMatch, badFilepathMatch, func() {
+			const archive = "testdata/foo.tgz"
+			err := Extract(
+				context.Background(),
+				t.TempDir(),
+				archive,
+				IncludePaths(map[string]string{"testdata": "testdata"}),
+			)
+			require.ErrorIs(t, err, wantErr)
+			require.ErrorContains(t, err, "bad include path pattern")
+		})
+	})
+
+	t.Run("parent removeall", func(t *testing.T) {
+		var (
+			wantErr      = errors.New(t.Name())
+			badRemoveAll = func(string) error {
+				return wantErr
+			}
+		)
+		stub.With(&_osRemoveAll, badRemoveAll, func() {
+			const archive = "testdata/foo.tgz"
+			err := Extract(
+				context.Background(),
+				t.TempDir(),
+				archive,
+				Delete(true),
+			)
+			require.ErrorIs(t, err, wantErr)
+			require.ErrorContains(
+				t,
+				err,
+				"failed to remove existing destination directory",
+			)
+		})
+	})
+
+	t.Run("parent mkdirallinherit", func(t *testing.T) {
+		var (
+			wantErr            = errors.New(t.Name())
+			badMkdirAllInherit = func(string) error {
+				return wantErr
+			}
+		)
+		stub.With(&_xosMkdirAllInherit, badMkdirAllInherit, func() {
+			const archive = "testdata/foo.tgz"
+			err := Extract(
+				context.Background(),
+				t.TempDir(),
+				archive,
+				Delete(true),
+			)
+			require.ErrorIs(t, err, wantErr)
+			require.ErrorContains(
+				t,
+				err,
+				"failed to create destination parent(s)",
+			)
+		})
+	})
+
+	t.Run("write to file", func(t *testing.T) {
+		var (
+			wantErr                       = errors.New(t.Name())
+			badWriteReaderToFileWithFlags = func(
+				_ string,
+				_ any,
+				_ int,
+				_ fs.FileMode,
+			) (int, error) {
+				return 0, wantErr
+			}
+		)
+		stub.With(
+			&_xosWriteReaderToFileWithFlags,
+			badWriteReaderToFileWithFlags,
+			func() {
+				const archive = "testdata/foo.tgz"
+				err := Extract(
+					context.Background(),
+					t.TempDir(),
+					archive,
+					Delete(true),
+				)
+				require.ErrorIs(t, err, wantErr)
+				require.ErrorContains(t, err, "failed to extract")
+			},
+		)
+	})
+}
+
 func TestExtractOutput(t *testing.T) {
 	archives := []string{
 		"testdata/foo.tar.bz",
@@ -310,6 +459,24 @@ func TestExtractTempDirWithCallback(t *testing.T) {
 	}
 }
 
+func TestExtract_MkdirTemp(t *testing.T) {
+	var (
+		wantErr      = errors.New(t.Name())
+		badMkdirTemp = func(_ string, _ string) (string, error) {
+			return "", wantErr
+		}
+	)
+
+	stub.With(&_osMkdirTemp, badMkdirTemp, func() {
+		err := Extract(
+			context.Background(),
+			ExtractToTempDir,
+			"foo.tgz",
+		)
+		require.ErrorIs(t, err, wantErr)
+	})
+}
+
 func TestStripPrefix(t *testing.T) {
 	cases := map[string]struct { //nolint:govet
 		givePath     string
@@ -367,6 +534,13 @@ func TestStripPrefix(t *testing.T) {
 			wantStripped: true,
 			wantErr:      nil,
 		},
+		"bad prefix": {
+			givePath:     "foo/bar",
+			givePrefix:   "\\",
+			wantPath:     "",
+			wantStripped: false,
+			wantErr:      filepath.ErrBadPattern,
+		},
 	}
 
 	for name, tt := range cases {
@@ -377,4 +551,19 @@ func TestStripPrefix(t *testing.T) {
 			require.ErrorIs(t, err, tt.wantErr)
 		})
 	}
+}
+
+func TestStripPrefix_Error(t *testing.T) {
+	var (
+		wantErr          = errors.New(t.Name())
+		badFilepathMatch = func(string, string) (bool, error) {
+			return false, wantErr
+		}
+	)
+	stub.With(&_filepathMatch, badFilepathMatch, func() {
+		path, stripped, err := stripPrefix("foo/bar", "foo")
+		require.ErrorIs(t, err, wantErr)
+		require.False(t, stripped)
+		require.Empty(t, path)
+	})
 }
