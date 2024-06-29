@@ -46,6 +46,17 @@ const (
 	_sep = string(os.PathSeparator)
 )
 
+var (
+	_filepathMatch                 = filepath.Match
+	_ioReadAll                     = io.ReadAll
+	_osMkdirTemp                   = os.MkdirTemp
+	_osOpen                        = os.Open
+	_osRemoveAll                   = os.RemoveAll
+	_xosMkdirAllInherit            = xos.MkdirAllInherit
+	_xosWithCwd                    = xos.WithCwd[func() error]
+	_xosWriteReaderToFileWithFlags = xos.WriteReaderToFileWithFlags
+)
+
 // Extract extracts the given archive to dst using any provided [Option]s.
 //
 //nolint:gocyclo
@@ -65,13 +76,13 @@ func Extract(
 	}
 
 	if dst == ExtractToTempDir {
-		if dst, err = os.MkdirTemp("", "extract"); err != nil {
+		if dst, err = _osMkdirTemp("", "extract"); err != nil {
 			return errors.Wrap(err, "failed to create temporary directory")
 		}
 
 		defer func() {
 			err = errors.Join(err, errors.Wrapf(
-				os.RemoveAll(dst),
+				_osRemoveAll(dst),
 				"failed to remove temporary destination %q",
 				dst,
 			))
@@ -102,9 +113,13 @@ func Extract(
 		}
 
 		for _, exclude := range options.ExcludePaths {
-			matched, matchErr := filepath.Match(exclude, fpath)
+			matched, matchErr := _filepathMatch(exclude, fpath)
 			if matchErr != nil {
-				return errors.Wrapf(matchErr, "bad match pattern %q", exclude)
+				return errors.Wrapf(
+					matchErr,
+					"bad exclude path pattern %q",
+					exclude,
+				)
 			}
 			if matched {
 				return nil
@@ -115,8 +130,12 @@ func Extract(
 		if len(options.IncludePaths) > 0 {
 			var matched bool
 			for include, explicitDst := range options.IncludePaths {
-				if matched, err = filepath.Match(include, fpath); err != nil {
-					return errors.Wrapf(err, "bad match pattern %q", include)
+				if matched, err = _filepathMatch(include, fpath); err != nil {
+					return errors.Wrapf(
+						err,
+						"bad include path pattern %q",
+						include,
+					)
 				}
 
 				switch {
@@ -139,8 +158,8 @@ func Extract(
 
 		parent := filepath.Dir(fpath)
 		if _, parentCreated := dirs[parent]; !parentCreated {
-			if options.Delete {
-				err = os.RemoveAll(parent)
+			if options.Delete && parent != "." {
+				err = _osRemoveAll(parent)
 				if err != nil && !errors.Is(err, os.ErrNotExist) {
 					return errors.Wrapf(
 						err,
@@ -150,7 +169,7 @@ func Extract(
 				}
 			}
 
-			if err = xos.MkdirAllInherit(parent); err != nil {
+			if err = _xosMkdirAllInherit(parent); err != nil {
 				return errors.Wrapf(
 					err,
 					"failed to create destination parent(s) %q",
@@ -160,7 +179,7 @@ func Extract(
 			dirs[fpath] = struct{}{}
 		}
 
-		_, err = xos.WriteReaderToFileWithFlags(
+		_, err = _xosWriteReaderToFileWithFlags(
 			dstpath,
 			f.Open,
 			os.O_CREATE|os.O_TRUNC|os.O_WRONLY,
@@ -185,7 +204,7 @@ func Extract(
 	})
 
 	var src io.ReadCloser
-	if src, err = os.Open(archive); err != nil {
+	if src, err = _osOpen(archive); err != nil {
 		return errors.Wrapf(err, "failed to open source file %q", archive)
 	}
 	defer func() {
@@ -196,7 +215,7 @@ func Extract(
 		))
 	}()
 
-	return xos.WithCwd(dst, func() (err error) {
+	return _xosWithCwd(dst, func() (err error) {
 		var (
 			format archiver.Format
 			reader io.Reader
@@ -214,7 +233,7 @@ func Extract(
 		}
 
 		if _, ok := ex.(archiver.Zip); ok {
-			raw, readErr := io.ReadAll(reader)
+			raw, readErr := _ioReadAll(reader)
 			if readErr != nil && !errors.Is(readErr, io.EOF) {
 				return errors.Wrap(readErr, "failed to read data buffer")
 			}
@@ -246,7 +265,7 @@ func stripPrefix(path string, prefix string) (string, bool, error) {
 	path = filepath.Clean(path)
 	idx := strings.IndexByte(path, _sep[0])
 	for idx > 0 {
-		matched, err := filepath.Match(prefix, path[:idx])
+		matched, err := _filepathMatch(prefix, path[:idx])
 		if err != nil {
 			return "", false, errors.Wrapf(err, "bad prefix %q", prefix)
 		}
