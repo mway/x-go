@@ -147,10 +147,35 @@ func TestVar_Restore_Error(t *testing.T) {
 }
 
 func TestVar_Unset_Error(t *testing.T) {
-	err := errors.New("setenv error")
+	err := errors.New("unsetenv error")
 	stub.With(&_osUnsetenv, osUnsetenvReturning(err), func() {
 		v := NewVar("test")
 		require.ErrorIs(t, v.Unset(), err)
 		require.Panics(t, v.MustUnset)
+	})
+}
+
+func TestNewVarWithValue(t *testing.T) {
+	var v *Var
+	require.NotPanics(t, func() {
+		v = MustVar(NewVarWithValue("test", t.Name()))
+	})
+	require.Equal(t, t.Name(), v.Value())
+
+	have, found := os.LookupEnv("test")
+	require.True(t, found)
+	require.Equal(t, v.Value(), have)
+}
+
+func TestNewVarWithValue_Error(t *testing.T) {
+	wantErr := errors.New("setenv error")
+	stub.With(&_osSetenv, osSetenvReturning(wantErr), func() {
+		v, err := NewVarWithValue("test", "nope")
+		require.ErrorIs(t, err, wantErr)
+		require.Nil(t, v)
+
+		require.Panics(t, func() {
+			MustVar(NewVarWithValue("test", "nope"))
+		})
 	})
 }
