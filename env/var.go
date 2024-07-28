@@ -51,6 +51,31 @@ func NewVar(key string) *Var {
 	}
 }
 
+// NewVarWithValue creates a new [Var] that manages an environment variable
+// with the given key and sets its value to the given value.
+func NewVarWithValue(key string, value string) (*Var, error) {
+	orig, exists := _osLookupEnv(key)
+	v := &Var{
+		key:    key,
+		value:  orig,
+		orig:   orig,
+		exists: exists,
+	}
+	if err := v.Set(value); err != nil {
+		return nil, err
+	}
+
+	return v, nil
+}
+
+// MustVar returns v, panicking if err is not nil.
+func MustVar(v *Var, err error) *Var {
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Key returns the key (environment variable name) for v.
 func (v *Var) Key() string {
 	return v.key
