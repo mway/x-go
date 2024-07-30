@@ -12,7 +12,6 @@ require (
 	go.mway.dev/pool v0.1.1
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab
-	golang.org/x/text v0.3.8
 )
 
 require (
@@ -37,5 +36,6 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
+	golang.org/x/text v0.3.8 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
