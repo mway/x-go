@@ -19,7 +19,7 @@ jobs:
         go: [stable, oldstable]
         include:
           - go: stable
-            golangci: v1.58
+            golangci: v1.60.2
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

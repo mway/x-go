@@ -75,3 +75,69 @@ func TestHasPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestFilter(t *testing.T) {
+	var (
+		allowAll   = func(int) bool { return true }
+		allowNone  = func(int) bool { return false }
+		allowOdds  = func(i int) bool { return i%2 != 0 }
+		allowEvens = func(i int) bool { return !allowOdds(i) }
+	)
+
+	cases := map[string]struct {
+		give []int
+		pred func(int) bool
+		want []int
+	}{
+		"nil": {
+			give: nil,
+			pred: allowAll,
+			want: nil,
+		},
+		"empty": {
+			give: []int{},
+			pred: allowAll,
+			want: nil,
+		},
+		"all": {
+			give: []int{1, 2, 3, 4},
+			pred: allowAll,
+			want: []int{1, 2, 3, 4},
+		},
+		"none": {
+			give: []int{1, 2, 3, 4},
+			pred: allowNone,
+			want: nil,
+		},
+		"odds": {
+			give: []int{1, 2, 3, 4},
+			pred: allowOdds,
+			want: []int{1, 3},
+		},
+		"evens": {
+			give: []int{1, 2, 3, 4},
+			pred: allowEvens,
+			want: []int{2, 4},
+		},
+		"only incrementing": {
+			give: []int{1, 1, 0, 1, 2, 1, 4, 5, 2, 6, 5},
+			pred: func() func(i int) bool {
+				var highest int
+				return func(i int) bool {
+					if i > highest {
+						highest = i
+						return true
+					}
+					return false
+				}
+			}(),
+			want: []int{1, 2, 4, 5, 6},
+		},
+	}
+
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, tt.want, slices.Filter(tt.give, tt.pred))
+		})
+	}
+}

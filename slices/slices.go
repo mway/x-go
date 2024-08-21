@@ -33,3 +33,24 @@ func HasPrefix[T comparable](x []T, prefix []T) bool {
 	}
 	return slices.Equal(x[:plen], prefix)
 }
+
+// Filter returns a copy of x with any elements for which pred returns true.
+func Filter[T any, P ~func(T) bool](x []T, pred P) []T {
+	if len(x) == 0 {
+		return nil
+	}
+
+	var tmp []T
+	for i := range x {
+		if !pred(x[i]) {
+			continue
+		}
+
+		if tmp == nil {
+			tmp = make([]T, 0, len(x)-i)
+		}
+
+		tmp = append(tmp, x[i])
+	}
+	return tmp
+}
