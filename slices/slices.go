@@ -54,3 +54,18 @@ func Filter[T any, P ~func(T) bool](x []T, pred P) []T {
 	}
 	return tmp
 }
+
+// Transform returns a copy of x with all elements' values passed through the
+// given mapping function.
+func Transform[From any, To any, P ~func(From) To](x []From, mapper P) []To {
+	if len(x) == 0 || mapper == nil {
+		return nil
+	}
+
+	dst := make([]To, len(x))
+	for i := range x {
+		dst[i] = mapper(x[i])
+	}
+
+	return dst
+}
