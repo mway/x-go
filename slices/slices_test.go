@@ -24,7 +24,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.mway.dev/x/container/set"
 	"go.mway.dev/x/slices"
+	"go.mway.dev/x/unsafe"
 )
 
 func TestHasPrefix(t *testing.T) {
@@ -138,6 +140,44 @@ func TestFilter(t *testing.T) {
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, tt.want, slices.Filter(tt.give, tt.pred))
+		})
+	}
+}
+
+func TestTransform(t *testing.T) {
+	cases := map[string]struct {
+		give   []string
+		mapper func(string) int
+		want   []int
+	}{
+		"empty source": {
+			give:   nil,
+			mapper: func(string) int { return 0 },
+			want:   nil,
+		},
+		"nil mapper": {
+			give:   []string{"a", "ab", "abc"},
+			mapper: nil,
+			want:   nil,
+		},
+		"lengths": {
+			give:   []string{"a", "ab", "abc"},
+			mapper: func(str string) int { return len(str) },
+			want:   []int{1, 2, 3},
+		},
+		"unique chars": {
+			give: []string{"aa", "aabb", "aabbcc"},
+			mapper: func(str string) int {
+				x := set.New(unsafe.StringToBytes(str)...)
+				return x.Len()
+			},
+			want: []int{1, 2, 3},
+		},
+	}
+
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, tt.want, slices.Transform(tt.give, tt.mapper))
 		})
 	}
 }
