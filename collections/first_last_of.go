@@ -33,6 +33,34 @@ func FirstOf[T comparable](values ...T) T {
 	return zero
 }
 
+// FirstOfFuncs returns the first T produced by a function in fns that is not a
+// zero value of T.
+func FirstOfFuncs[T comparable](fns ...func() T) T {
+	var zero T
+	for i := 0; i < len(fns); i++ {
+		if fns[i] == nil {
+			continue
+		}
+		if x := fns[i](); x != zero {
+			return x
+		}
+	}
+	return zero
+}
+
+// FirstOfOr returns the first T in values that is not a zero value of T, or
+// invokes fn to produce a T otherwise.
+func FirstOfOr[T comparable](fn func() T, values ...T) T {
+	var zero T
+	if x := FirstOf(values...); x != zero {
+		return x
+	}
+	if fn != nil {
+		return fn()
+	}
+	return zero
+}
+
 // LastOf returns the last T in values that is not a zero value of T.
 func LastOf[T comparable](values ...T) T {
 	var zero T
@@ -40,6 +68,35 @@ func LastOf[T comparable](values ...T) T {
 		if value := values[i]; value != zero {
 			return value
 		}
+	}
+	return zero
+}
+
+// LastOfFuncs returns the last T produced by a function in fns that is not a
+// zero value of T. The given functions will be evaluated in reverse order;
+// functions provided earlier than a successful function will not be called.
+func LastOfFuncs[T comparable](fns ...func() T) T {
+	var zero T
+	for i := len(fns) - 1; i >= 0; i-- {
+		if fns[i] == nil {
+			continue
+		}
+		if value := fns[i](); value != zero {
+			return value
+		}
+	}
+	return zero
+}
+
+// LastOfOr returns the last T in values that is not a zero value of T, or
+// invokes fn to produce a T otherwise.
+func LastOfOr[T comparable](fn func() T, values ...T) T {
+	var zero T
+	if x := LastOf(values...); x != zero {
+		return x
+	}
+	if fn != nil {
+		return fn()
 	}
 	return zero
 }
