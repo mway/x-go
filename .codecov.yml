@@ -7,3 +7,5 @@ coverage:
         threshold: 1%
 comment:
   require_changes: true
+ignore:
+  - *mock/mock_*.go

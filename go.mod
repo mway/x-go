@@ -10,6 +10,7 @@ require (
 	go.mway.dev/color v0.0.0-20220910164822-b14e9c5250ba
 	go.mway.dev/errors v0.4.0
 	go.mway.dev/pool v0.1.1
+	go.uber.org/mock v0.5.0
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	golang.org/x/sys v0.5.0
 )
