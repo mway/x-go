@@ -26,8 +26,8 @@ type Stack[T any] struct {
 	data []T
 }
 
-// NewStack creates a new [Stack[T]] with the given initial capacity.
-func NewStack[T any](size int) *Stack[T] {
+// New creates a new [Stack[T]] with the given initial capacity.
+func New[T any](size int) *Stack[T] {
 	return &Stack[T]{
 		data: make([]T, 0, size),
 	}
