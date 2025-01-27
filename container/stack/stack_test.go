@@ -1,0 +1,167 @@
+// Copyright (c) 2025 Matt Way
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE THE SOFTWARE.
+
+package stack_test
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.mway.dev/x/container/stack"
+)
+
+func TestNewStack(t *testing.T) {
+	x := stack.NewStack[int](32)
+	require.Equal(t, 0, x.Len())
+	require.Equal(t, 32, x.Cap())
+
+	x.Push(123)
+	require.Equal(t, 1, x.Len())
+	require.Equal(t, 123, x.Pop())
+	require.Equal(t, 0, x.Len())
+	require.Equal(t, 32, x.Cap())
+}
+
+func TestStack_PushTopPopLenCap(t *testing.T) {
+	var x stack.Stack[int]
+	require.Equal(t, 0, x.Len())
+	x.Push(123)
+	require.Equal(t, 1, x.Len())
+	require.NotPanics(t, func() {
+		require.Equal(t, 123, x.Top())
+		require.Equal(t, 1, x.Len())
+		require.Equal(t, 1, x.Cap())
+		require.Equal(t, 123, x.Pop())
+		require.Equal(t, 0, x.Len())
+		require.Equal(t, 1, x.Cap())
+	})
+}
+
+func TestStack_MaybeTopMaybePop(t *testing.T) {
+	var x stack.Stack[int]
+
+	val, ok := x.MaybeTop()
+	require.False(t, ok)
+	require.Zero(t, val)
+
+	val, ok = x.MaybePop()
+	require.False(t, ok)
+	require.Zero(t, val)
+
+	x.Push(123)
+
+	val, ok = x.MaybeTop()
+	require.True(t, ok)
+	require.Equal(t, 123, val)
+	require.Equal(t, x.Top(), val)
+
+	val, ok = x.MaybePop()
+	require.True(t, ok)
+	require.Equal(t, 123, val)
+	require.Equal(t, 0, x.Len())
+}
+
+func TestStack_PeekEachPopEach(t *testing.T) {
+	var (
+		give = []int{1, 2, 3, 4, 5}
+		want = []int{5, 4, 3, 2, 1}
+		have []int
+		x    stack.Stack[int]
+	)
+
+	x.PeekEach(func(int) bool {
+		require.FailNow(
+			t,
+			"an empty Stack[T].PeekEach should not invoke a callback",
+		)
+		return true
+	})
+	x.PopEach(func(int) bool {
+		require.FailNow(
+			t,
+			"an empty Stack[T].PopEach should not invoke a callback",
+		)
+		return true
+	})
+
+	for _, n := range give {
+		x.Push(n)
+	}
+
+	x.PeekEach(func(n int) bool {
+		have = append(have, n)
+		return true
+	})
+	require.Equal(t, want, have)
+
+	have = have[:0]
+	x.PopEach(func(n int) bool {
+		have = append(have, n)
+		return true
+	})
+	require.Equal(t, want, have)
+}
+
+func TestStack_PeekEachPopEach_Abort(t *testing.T) {
+	var (
+		give = []int{1, 2, 3, 4, 5}
+		want = []int{5}
+		have []int
+		x    stack.Stack[int]
+	)
+
+	for _, n := range give {
+		x.Push(n)
+	}
+
+	require.Equal(t, 5, x.Len())
+	x.PeekEach(func(n int) bool {
+		have = append(have, n)
+		return false
+	})
+	require.Equal(t, want, have)
+
+	have = have[:0]
+	require.Equal(t, 5, x.Len())
+	x.PopEach(func(n int) bool {
+		have = append(have, n)
+		return false
+	})
+	require.Equal(t, want, have)
+	require.Equal(t, 4, x.Len())
+}
+
+func BenchmarkStack_PushPop(b *testing.B) {
+	depths := []int{0, 1, 3, 5, 10}
+	for _, depth := range depths {
+		var s stack.Stack[string]
+		for range depth {
+			s.Push(b.Name())
+		}
+
+		b.Run(fmt.Sprintf("depth %d", depth), func(b *testing.B) {
+			for range b.N {
+				s.Push(b.Name())
+				s.Pop()
+			}
+		})
+	}
+}
