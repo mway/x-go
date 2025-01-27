@@ -28,8 +28,8 @@ import (
 	"go.mway.dev/x/container/stack"
 )
 
-func TestNewStack(t *testing.T) {
-	x := stack.NewStack[int](32)
+func TestNew(t *testing.T) {
+	x := stack.New[int](32)
 	require.Equal(t, 0, x.Len())
 	require.Equal(t, 32, x.Cap())
 
