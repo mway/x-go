@@ -26,8 +26,8 @@ type Queue[T any] struct {
 	data []T
 }
 
-// NewQueue creates a new [Queue[T]] with the given initial capacity.
-func NewQueue[T any](size int) *Queue[T] {
+// New creates a new [Queue[T]] with the given initial capacity.
+func New[T any](size int) *Queue[T] {
 	return &Queue[T]{
 		data: make([]T, 0, size),
 	}
