@@ -28,8 +28,8 @@ import (
 	"go.mway.dev/x/container/queue"
 )
 
-func TestNewQueue(t *testing.T) {
-	x := queue.NewQueue[int](32)
+func TestNew(t *testing.T) {
+	x := queue.New[int](32)
 	require.Equal(t, 0, x.Len())
 	require.Equal(t, 32, x.Cap())
 
@@ -150,7 +150,7 @@ func TestQueue_PeekEachPopEach_Abort(t *testing.T) {
 }
 
 func BenchmarkQueue_PushPop(b *testing.B) {
-	depths := []int{0, 1, 3, 5, 10}
+	depths := []int{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024}
 	for _, depth := range depths {
 		var q queue.Queue[string]
 		for range depth {
@@ -159,8 +159,7 @@ func BenchmarkQueue_PushPop(b *testing.B) {
 
 		b.Run(fmt.Sprintf("depth %d", depth), func(b *testing.B) {
 			for range b.N {
-				q.Push(b.Name())
-				q.Pop()
+				q.Push(q.Pop())
 			}
 		})
 	}
