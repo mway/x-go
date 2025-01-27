@@ -29,6 +29,12 @@ import (
 	"go.mway.dev/x/container/list"
 )
 
+func TestLinkDoublyWithTail(t *testing.T) {
+	head, tail := list.LinkDoublyWithTail(1, 2, 3, 4, 5)
+	require.Equal(t, []int{1, 2, 3, 4, 5}, head.ToSlice())
+	require.Equal(t, []int{5, 4, 3, 2, 1}, tail.ToSliceRev())
+}
+
 func TestLinkDoublyToSlice(t *testing.T) {
 	cases := map[string]struct {
 		give *list.DoubleNode[int]

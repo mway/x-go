@@ -30,6 +30,24 @@ import (
 	"go.mway.dev/x/container/list"
 )
 
+func TestLinkWithTail(t *testing.T) {
+	head, tail := list.LinkWithTail(1, 2, 3, 4, 5)
+	require.Equal(t, 1, head.Value())
+
+	var (
+		cur     = head
+		checked bool
+	)
+	for cur != nil {
+		if cur.Next == nil {
+			require.Equal(t, 5, tail.Value())
+			checked = true
+		}
+		cur = cur.Next
+	}
+	require.True(t, checked)
+}
+
 func TestLinkToSlice(t *testing.T) {
 	cases := map[string]struct {
 		give *list.Node[int]
