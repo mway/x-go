@@ -43,16 +43,25 @@ func NewDoubleNode[T any](value T) *DoubleNode[T] {
 // LinkDoubly doubly-links value and any extra values in order, returning the
 // head of the list.
 func LinkDoubly[T any](value T, extra ...T) *DoubleNode[T] {
+	x, _ := LinkDoublyWithTail(value, extra...)
+	return x
+}
+
+// LinkDoublyWithTail doubly-links value and any extra values in order,
+// returning the head and tail of the list.
+func LinkDoublyWithTail[T any](value T, extra ...T) (*DoubleNode[T], *DoubleNode[T]) {
 	var (
 		head = NewDoubleNode(value)
+		tail = head
 		cur  = head
 	)
 
 	for _, val := range extra {
 		cur.Next = NewDoubleNode(val).WithPrev(cur)
 		cur = cur.Next
+		tail = cur
 	}
-	return head
+	return head, tail
 }
 
 // WithPrev doubly links prev<>n, returning n. It does not adjust the links of

@@ -42,8 +42,16 @@ func NewNode[T any](value T) *Node[T] {
 // Link singly-links value and any extra values in order, returning the head of
 // the list.
 func Link[T any](value T, extra ...T) *Node[T] {
+	x, _ := LinkWithTail(value, extra...)
+	return x
+}
+
+// LinkWithTail singly-links value and any extra values in order, returning the
+// head and tail of the list.
+func LinkWithTail[T any](value T, extra ...T) (*Node[T], *Node[T]) {
 	var (
 		head = NewNode(value)
+		tail = head
 		cur  = head
 	)
 
@@ -53,9 +61,10 @@ func Link[T any](value T, extra ...T) *Node[T] {
 			isset: true,
 		}
 		cur = cur.Next
+		tail = cur
 	}
 
-	return head
+	return head, tail
 }
 
 // Value returns the node's value.
