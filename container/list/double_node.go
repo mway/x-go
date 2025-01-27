@@ -106,6 +106,26 @@ func (n *DoubleNode[T]) IsSet() bool {
 	return n != nil && n.isset
 }
 
+// DetachPrev detches the node from its previous node, if one exists.
+func (n *DoubleNode[T]) DetachPrev() *DoubleNode[T] {
+	if n == nil || n.Prev == nil {
+		return n
+	}
+	n.Prev.Next = nil
+	n.Prev = nil
+	return n
+}
+
+// DetachNext detaches the node from its next node, if one exists.
+func (n *DoubleNode[T]) DetachNext() *DoubleNode[T] {
+	if n == nil || n.Next == nil {
+		return n
+	}
+	n.Next.Prev = nil
+	n.Next = nil
+	return n
+}
+
 // InsertBefore inserts the given node or list before n.
 func (n *DoubleNode[T]) InsertBefore(node *DoubleNode[T]) {
 	end := node
