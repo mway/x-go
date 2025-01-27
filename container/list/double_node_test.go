@@ -89,6 +89,8 @@ func TestDoubleNode_SetVsUnset(t *testing.T) {
 	require.Zero(t, node.Value())
 	require.Nil(t, node.ToSlice())
 	require.NotPanics(t, func() {
+		node.DetachNext()
+		node.DetachPrev()
 		node.Sort(nil)
 	})
 
@@ -324,4 +326,37 @@ func TestDoubleNode_ForEach(t *testing.T) {
 		return false
 	})
 	require.Equal(t, want[:1], have)
+}
+
+func TestDoubleNode_DetachPrev(t *testing.T) {
+	var (
+		head = list.LinkDoubly(1, 2, 3, 4, 5, 6)
+		cur  = head
+	)
+	for range 3 {
+		cur = cur.Next
+	}
+	cur.DetachPrev()
+	require.Nil(t, cur.Prev)
+	require.Equal(t, []int{1, 2, 3}, head.ToSlice())
+	require.Equal(t, []int{4, 5, 6}, cur.ToSlice())
+}
+
+func TestDoubleNode_DetachNext(t *testing.T) {
+	var (
+		head = list.LinkDoubly(1, 2, 3, 4, 5, 6)
+		tail = head
+	)
+	for tail.Next != nil {
+		tail = tail.Next
+	}
+
+	cur := tail
+	for range 3 {
+		cur = cur.Prev
+	}
+	cur.DetachNext()
+	require.Nil(t, cur.Next)
+	require.Equal(t, []int{6, 5, 4}, tail.ToSliceRev())
+	require.Equal(t, []int{3, 2, 1}, cur.ToSliceRev())
 }
