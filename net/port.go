@@ -21,7 +21,21 @@
 package net
 
 import (
+	"errors"
+	"fmt"
 	"net"
+	"strconv"
+)
+
+var (
+	// ErrParsingFailed is returned by parsing functions when parsing fails.
+	ErrParsingFailed = errors.New("parsing failed")
+	// ErrNoPortFound is returned by [ParsePort] when no port is found.
+	ErrNoPortFound = fmt.Errorf("%w: no port found", ErrParsingFailed)
+	// ErrMalformedAddr is returned by [ParsePort] when a malformed port is found.
+	ErrMalformedAddr = fmt.Errorf("%w: malformed addr", ErrParsingFailed)
+	// ErrInvalidPort is returned by [ParsePort] when an invalid port is found.
+	ErrInvalidPort = fmt.Errorf("%w: invalid port", ErrParsingFailed)
 )
 
 // RandomPort returns a random, OS-assigned port bindable to the given addr.
@@ -52,4 +66,27 @@ func MustPort(port int, err error) int {
 	}
 
 	return port
+}
+
+// ParsePort parses any port value in addr, returning the numeric value or any
+// error encountered while parsing.
+func ParsePort(addr string) (int, error) {
+	_, portstr, err := net.SplitHostPort(addr)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %q: %w", ErrMalformedAddr, addr, err)
+	}
+	if len(portstr) == 0 {
+		return 0, fmt.Errorf("%w: %q", ErrNoPortFound, addr)
+	}
+
+	port, err := strconv.Atoi(portstr)
+	if err != nil {
+		return 0, fmt.Errorf(
+			"failed to parse port: %w: %w",
+			ErrInvalidPort,
+			err,
+		)
+	}
+
+	return port, nil
 }
