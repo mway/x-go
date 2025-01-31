@@ -89,6 +89,53 @@ func TestMustPort(t *testing.T) {
 	})
 }
 
+func TestParsePort(t *testing.T) {
+	//nolint:govet
+	cases := map[string]struct {
+		give     string
+		wantPort int
+		wantErr  error
+	}{
+		"empty string": {
+			give:     "",
+			wantPort: 0,
+			wantErr:  ErrMalformedAddr,
+		},
+		"host only": {
+			give:     "foobar",
+			wantPort: 0,
+			wantErr:  ErrMalformedAddr,
+		},
+		"empty port": {
+			give:     "foobar:",
+			wantPort: 0,
+			wantErr:  ErrNoPortFound,
+		},
+		"empty host": {
+			give:     ":123",
+			wantPort: 123,
+			wantErr:  nil,
+		},
+		"empty host invalid port": {
+			give:     ":abc",
+			wantPort: 0,
+			wantErr:  ErrInvalidPort,
+		},
+		"qualified port": {
+			give:     "localhost:80",
+			wantPort: 80,
+			wantErr:  nil,
+		},
+	}
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			havePort, haveErr := ParsePort(tt.give)
+			require.Equal(t, tt.wantPort, havePort)
+			require.ErrorIs(t, haveErr, tt.wantErr)
+		})
+	}
+}
+
 type uncloseableListener struct {
 	addr          *net.TCPAddr
 	err           error
