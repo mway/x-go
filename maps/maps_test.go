@@ -21,6 +21,8 @@
 package maps_test
 
 import (
+	gomaps "maps"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -157,5 +159,57 @@ func TestTransform(t *testing.T) {
 			}
 		)
 		require.Equal(t, want, maps.Transform[map[string]string](give, mapper))
+	})
+}
+
+func TestIterIter2(t *testing.T) {
+	t.Run("sanity", func(t *testing.T) {
+		var (
+			want = map[int]int{
+				1: 1,
+				2: 2,
+				3: 3,
+			}
+			iter  = maps.Iter(want)
+			iter2 = maps.Iter2(want)
+		)
+
+		require.ElementsMatch(
+			t,
+			slices.Collect(gomaps.Values(want)),
+			slices.Collect(iter),
+		)
+		require.Equal(t, want, gomaps.Collect(iter2))
+	})
+
+	t.Run("early return", func(t *testing.T) {
+		var (
+			want = map[int]int{
+				1: 1,
+				2: 2,
+				3: 3,
+			}
+			iter       = maps.Iter(want)
+			iter2      = maps.Iter2(want)
+			haveValues []int
+			haveMap    = make(map[int]int)
+		)
+
+		iter(func(v int) bool {
+			haveValues = append(haveValues, v)
+			return false
+		})
+		require.Len(t, haveValues, 1)
+		require.Contains(t, slices.Collect(gomaps.Values(want)), haveValues[0])
+
+		iter2(func(k int, v int) bool {
+			haveMap[k] = v
+			return false
+		})
+		require.Len(t, haveMap, 1)
+		for k, v := range haveMap {
+			require.Contains(t, want, k)
+			require.Equal(t, want[k], v)
+		}
 	})
 }
