@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Matt Way
+// Copyright (c) 2025 Matt Way
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -40,12 +40,12 @@ func StringToBytes(x string) []byte {
 		return nil
 	}
 
-	const max = math.MaxInt32 - math.MaxInt16
-	if len(x) > max {
+	const lim = math.MaxInt32 - math.MaxInt16
+	if len(x) > lim {
 		return []byte(x)
 	}
 
-	return (*[max]byte)((*stringHeader)(unsafe.Pointer(&x)).Data)[:len(x):len(x)]
+	return (*[lim]byte)((*stringHeader)(unsafe.Pointer(&x)).Data)[:len(x):len(x)]
 }
 
 // BytesToString returns a string that uses x as its underlying storage

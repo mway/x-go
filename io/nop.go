@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Matt Way
+// Copyright (c) 2025 Matt Way
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -54,7 +54,7 @@ func (nop) Write(p []byte) (int, error) {
 }
 
 func (nop) WriteString(s string) (int, error) {
-	return io.Discard.(io.StringWriter).WriteString(s)
+	return io.Discard.(io.StringWriter).WriteString(s) //nolint:errcheck
 }
 
 func (nop) Close() error {

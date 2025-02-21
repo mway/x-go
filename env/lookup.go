@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Matt Way
+// Copyright (c) 2025 Matt Way
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -109,43 +109,43 @@ func LookupAs[T Parsable](
 	switch any(value).(type) {
 	case bool:
 		x, parseErr := parseBool(str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case int:
 		x, parseErr := parseInt[int](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case int8:
 		x, parseErr := parseInt[int8](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case int16:
 		x, parseErr := parseInt[int16](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case int32:
 		x, parseErr := parseInt[int32](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case int64:
 		x, parseErr := parseInt[int64](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case uint:
 		x, parseErr := parseUint[uint](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case uint8:
 		x, parseErr := parseUint[uint8](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case uint16:
 		x, parseErr := parseUint[uint16](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case uint32:
 		x, parseErr := parseUint[uint32](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case uint64:
 		x, parseErr := parseUint[uint64](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case float32:
 		x, parseErr := parseFloat[float32](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	case float64:
 		x, parseErr := parseFloat[float64](str)
-		return any(x).(T), true, parseErr
+		return any(x).(T), true, parseErr //nolint:errcheck
 	default:
 		// n.b. This case is only selected for string, because it is the only
 		//      remaining unenumerated type that matches the Parsable type
@@ -155,7 +155,7 @@ func LookupAs[T Parsable](
 		//      constraint, and so is seen as inexhaustible). To work around
 		//      this (and to make coverage fairer), we use default for the
 		//      string case.
-		return any(str).(T), true, nil
+		return any(str).(T), true, nil //nolint:errcheck
 	}
 }
 

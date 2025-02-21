@@ -37,18 +37,18 @@ type Range[T xmath.Numeric] struct {
 }
 
 // NewRange creates a new [Range[T]] with the given min and max values.
-func NewRange[T xmath.Numeric](min T, max T) Range[T] {
-	if min > max {
+func NewRange[T xmath.Numeric](lo T, hi T) Range[T] {
+	if lo > hi {
 		panic(fmt.Sprintf(
 			"clamp.NewRange: lower (%v) > upper (%v)",
-			min,
-			max,
+			lo,
+			hi,
 		))
 	}
 
 	return Range[T]{
-		Min: min,
-		Max: max,
+		Min: lo,
+		Max: hi,
 	}
 }
 
