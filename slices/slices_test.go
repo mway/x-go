@@ -21,6 +21,8 @@
 package slices_test
 
 import (
+	"maps"
+	goslices "slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -180,4 +182,47 @@ func TestTransform(t *testing.T) {
 			require.Equal(t, tt.want, slices.Transform(tt.give, tt.mapper))
 		})
 	}
+}
+
+func TestIterIter2(t *testing.T) {
+	t.Run("sanity", func(t *testing.T) {
+		var (
+			want  = []int{1, 2, 3}
+			iter  = slices.Iter(want)
+			iter2 = slices.Iter2(want)
+		)
+
+		require.Equal(t, want, goslices.Collect(iter))
+		require.Equal(
+			t,
+			map[int]int{
+				0: 1,
+				1: 2,
+				2: 3,
+			},
+			maps.Collect(iter2),
+		)
+	})
+
+	t.Run("early return", func(t *testing.T) {
+		var (
+			want       = []int{1, 2, 3}
+			iter       = slices.Iter(want)
+			iter2      = slices.Iter2(want)
+			haveValues []int
+			haveMap    = make(map[int]int)
+		)
+
+		iter(func(v int) bool {
+			haveValues = append(haveValues, v)
+			return false
+		})
+		require.Equal(t, []int{1}, haveValues)
+
+		iter2(func(k int, v int) bool {
+			haveMap[k] = v
+			return false
+		})
+		require.Equal(t, map[int]int{0: 1}, haveMap)
+	})
 }

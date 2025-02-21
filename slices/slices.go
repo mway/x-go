@@ -22,6 +22,7 @@
 package slices
 
 import (
+	"iter"
 	"slices"
 )
 
@@ -68,4 +69,26 @@ func Transform[From any, To any, P ~func(From) To](x []From, mapper P) []To {
 	}
 
 	return dst
+}
+
+// Iter returns an [iter.Seq[V]] that ranges over s.
+func Iter[T ~[]V, V any](s T) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for _, value := range s {
+			if !yield(value) {
+				return
+			}
+		}
+	}
+}
+
+// Iter2 returns an [iter.Seq[int, V]] that ranges over s.
+func Iter2[T ~[]V, V any](s T) iter.Seq2[int, V] {
+	return func(yield func(int, V) bool) {
+		for i, value := range s {
+			if !yield(i, value) {
+				return
+			}
+		}
+	}
 }
