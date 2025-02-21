@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Matt Way
+// Copyright (c) 2025 Matt Way
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -47,7 +47,7 @@ func (v *Value[T]) CompareAndSwap(oldval T, newval T) bool {
 
 // Load loads the currently held T value.
 func (v *Value[T]) Load() T {
-	return v.value.Load().(T)
+	return v.value.Load().(T) //nolint:errcheck
 }
 
 // Store stores the given T value.
@@ -58,5 +58,5 @@ func (v *Value[T]) Store(val T) {
 // Swap swaps the currently held T value with the given value, returning the
 // previous T.
 func (v *Value[T]) Swap(val T) T {
-	return v.value.Swap(val).(T)
+	return v.value.Swap(val).(T) //nolint:errcheck
 }

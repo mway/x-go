@@ -72,7 +72,7 @@ func Predicate[T any, P PredicateFunc[T]](value T, pred P) T {
 	if fn, ok := any(pred).(FnT); ok {
 		return Bool(value, fn(value))
 	}
-	return Bool(value, any(pred).(Fn)())
+	return Bool(value, any(pred).(Fn)()) //nolint:errcheck
 }
 
 // Any delegates to [Must], [MustBool], or [MustPredicate], depending on P,
@@ -113,7 +113,7 @@ func Func[T any, F MustFunc[T]](fn F) T {
 	if fn, ok := any(fn).(fnError); ok {
 		return Error(fn())
 	}
-	return Bool(any(fn).(fnBool)())
+	return Bool(any(fn).(fnBool)()) //nolint:errcheck
 }
 
 // Do panics if fn returns an error.

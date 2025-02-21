@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Matt Way
+// Copyright (c) 2025 Matt Way
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -45,7 +45,7 @@ func RandomPort(addr string) (int, error) {
 		return 0, err
 	}
 
-	port := l.Addr().(*net.TCPAddr).Port
+	port := l.Addr().(*net.TCPAddr).Port //nolint:errcheck
 	if err := l.Close(); err != nil {
 		return 0, err
 	}
