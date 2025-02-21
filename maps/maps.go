@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Matt Way
+// Copyright (c) 2025 Matt Way
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -22,7 +22,7 @@
 package maps
 
 import (
-	"fmt"
+	"iter"
 )
 
 // Predicate constrains the types of predicate functions supported by [Filter].
@@ -52,7 +52,7 @@ func Filter[K comparable, V any, M ~map[K]V, P Predicate[K, V]](
 ) M {
 	var (
 		dst = make(M, len(src))
-		fn  = wrap[K, V, P](pred)
+		fn  = wrap[K, V](pred)
 	)
 
 	for k, v := range src {
@@ -82,6 +82,28 @@ func Transform[
 	return dst
 }
 
+// Iter returns an [iter.Seq[V]] that ranges over s.
+func Iter[T ~map[K]V, K comparable, V any](s T) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for _, v := range s {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// Iter2 returns an [iter.Seq2[K, V]] that ranges over s.
+func Iter2[T ~map[K]V, K comparable, V any](m T) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for k, v := range m {
+			if !yield(k, v) {
+				return
+			}
+		}
+	}
+}
+
 func wrap[K comparable, V any, P Predicate[K, V]](pred P) func(K, V) bool {
 	switch pred := any(pred).(type) {
 	case func(K, V) bool:
@@ -90,11 +112,12 @@ func wrap[K comparable, V any, P Predicate[K, V]](pred P) func(K, V) bool {
 		return func(k K, _ V) bool {
 			return pred(k, struct{}{})
 		}
-	case func(struct{}, V) bool:
-		return func(_ K, v V) bool {
-			return pred(struct{}{}, v)
-		}
 	default:
-		panic(fmt.Sprintf("bug: unexpected type-constrained value: %T", pred))
+		// n.b. This conversion cannot fail as the type of P is restricted to
+		//      the two switch cases above and the one type below.
+		x := pred.(func(struct{}, V) bool) //nolint:errcheck
+		return func(_ K, v V) bool {
+			return x(struct{}{}, v)
+		}
 	}
 }
