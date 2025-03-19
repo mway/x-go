@@ -25,222 +25,481 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.mway.dev/x/collections"
+	"go.mway.dev/x/slices"
 )
 
-func TestFirstLastOf(t *testing.T) {
+func TestFirstOf(t *testing.T) {
 	cases := map[string]struct {
 		give      []int
-		wantFirst int
-		wantLast  int
+		wantIndex int
+		wantValue int
 	}{
-		"nil": {
-			give:      []int(nil),
-			wantFirst: 0,
-			wantLast:  0,
+		"nil slice": {
+			give:      nil,
+			wantIndex: 0,
+			wantValue: 0,
 		},
-		"empty": {
+		"empty slice": {
 			give:      []int{},
-			wantFirst: 0,
-			wantLast:  0,
+			wantIndex: 0,
+			wantValue: 0,
 		},
-		"single": {
+		"single 1": {
 			give:      []int{123},
-			wantFirst: 123,
-			wantLast:  123,
+			wantIndex: 0,
+			wantValue: 123,
 		},
-		"negative": {
-			give:      []int{-123},
-			wantFirst: -123,
-			wantLast:  -123,
+		"single 2": {
+			give:      []int{0},
+			wantIndex: 0,
+			wantValue: 0,
 		},
-		"multiple": {
+		"double 1": {
 			give:      []int{123, 456},
-			wantFirst: 123,
-			wantLast:  456,
+			wantIndex: 0,
+			wantValue: 123,
 		},
-		"nested": {
-			give:      []int{0, 123, 0},
-			wantFirst: 123,
-			wantLast:  123,
+		"double 2": {
+			give:      []int{0, 456},
+			wantIndex: 1,
+			wantValue: 456,
 		},
-		"sparse": {
-			give:      []int{0, 123, 0, 456, 0},
-			wantFirst: 123,
-			wantLast:  456,
+		"double 3": {
+			give:      []int{123, 0},
+			wantIndex: 0,
+			wantValue: 123,
 		},
-		"zeroes": {
-			give:      []int{0, 0, 0},
-			wantFirst: 0,
-			wantLast:  0,
+		"double 4": {
+			give:      []int{0, 0},
+			wantIndex: 0,
+			wantValue: 0,
 		},
 	}
-
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
-			require.Equal(t, tt.wantFirst, collections.FirstOf(tt.give...))
-			require.Equal(t, tt.wantLast, collections.LastOf(tt.give...))
+			require.Equal(t, tt.wantValue, collections.FirstOf(tt.give...))
+			require.Equal(t, tt.wantValue, collections.FirstOfSeq(slices.Iter(tt.give)))
+			haveIndex, haveValue := collections.FirstOfSeq2(slices.Iter2(tt.give))
+			require.Equal(t, tt.wantIndex, haveIndex)
+			require.Equal(t, tt.wantValue, haveValue)
+			require.Equal(t, tt.wantValue, collections.FirstOfFuncs(toFuncs(tt.give)...))
 		})
 	}
 }
 
-func TestFirstLastOfFuncs(t *testing.T) {
-	makeFuncs := func(values []int) []func() int {
-		switch {
-		case values == nil:
-			return nil
-		case len(values) == 0:
-			return []func() int{}
-		default:
-			fns := make([]func() int, len(values))
-			for i := range len(values) {
-				fns[i] = func() int {
-					return values[i]
-				}
-			}
-			return fns
-		}
-	}
+func TestFirstOfLastOfFuncs_Nil(t *testing.T) {
+	const want = 123
 
 	cases := map[string]struct {
-		give      []func() int
+		funcs     []func() int
 		wantFirst int
 		wantLast  int
 	}{
-		"nil": {
-			give:      makeFuncs(nil),
+		"no funcs": {
+			funcs:     nil,
 			wantFirst: 0,
 			wantLast:  0,
 		},
-		"empty": {
-			give:      makeFuncs([]int{}),
+		"single nil": {
+			funcs:     []func() int{nil},
 			wantFirst: 0,
 			wantLast:  0,
 		},
-		"single": {
-			give:      makeFuncs([]int{123}),
-			wantFirst: 123,
-			wantLast:  123,
+		"single ok": {
+			funcs: []func() int{
+				func() int { return want },
+			},
+			wantFirst: want,
+			wantLast:  want,
 		},
-		"negative": {
-			give:      makeFuncs([]int{-123}),
-			wantFirst: -123,
-			wantLast:  -123,
-		},
-		"multiple": {
-			give:      makeFuncs([]int{123, 456}),
-			wantFirst: 123,
-			wantLast:  456,
-		},
-		"nested": {
-			give:      makeFuncs([]int{0, 123, 0}),
-			wantFirst: 123,
-			wantLast:  123,
-		},
-		"sparse": {
-			give:      makeFuncs([]int{0, 123, 0, 456, 0}),
-			wantFirst: 123,
-			wantLast:  456,
-		},
-		"zeroes": {
-			give:      makeFuncs([]int{0, 0, 0}),
+		"double nil": {
+			funcs:     []func() int{nil, nil},
 			wantFirst: 0,
 			wantLast:  0,
 		},
-		"nil func": {
-			give:      []func() int{nil},
-			wantFirst: 0,
-			wantLast:  0,
+		"double ok": {
+			funcs: []func() int{
+				func() int { return want },
+				func() int { return want * 2 },
+			},
+			wantFirst: want,
+			wantLast:  want * 2,
 		},
-		"sparse nil funcs": {
-			give: []func() int{
+		"double first nil": {
+			funcs: []func() int{
 				nil,
-				func() int { return 123 },
+				func() int { return want * 2 },
+			},
+			wantFirst: want * 2,
+			wantLast:  want * 2,
+		},
+		"double second nil": {
+			funcs: []func() int{
+				func() int { return want },
 				nil,
 			},
-			wantFirst: 123,
-			wantLast:  123,
+			wantFirst: want,
+			wantLast:  want,
 		},
 	}
 
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
-			haveFirst := collections.FirstOfFuncs(tt.give...)
-			require.Equal(t, tt.wantFirst, haveFirst)
-			haveLast := collections.LastOfFuncs(tt.give...)
-			require.Equal(t, tt.wantLast, haveLast)
+			require.Equal(t, tt.wantFirst, collections.FirstOfFuncs(tt.funcs...))
+			require.Equal(t, tt.wantLast, collections.LastOfFuncs(tt.funcs...))
 		})
 	}
 }
 
-func TestFirstLastOfOr(t *testing.T) {
+func TestFirstOfOr(t *testing.T) {
+	const (
+		fallbackKey   = -1
+		fallbackValue = -42
+	)
 	cases := map[string]struct {
-		fn        func() int
 		give      []int
-		wantFirst int
-		wantLast  int
+		wantIndex int
+		wantValue int
+		fallback  bool
 	}{
-		"nil": {
+		"nil slice": {
 			give:      nil,
-			fn:        func() int { return 123 },
-			wantFirst: 123,
-			wantLast:  123,
+			wantIndex: fallbackKey,
+			wantValue: fallbackValue,
+			fallback:  true,
 		},
-		"nil with nil func": {
-			give:      nil,
-			fn:        nil,
-			wantFirst: 0,
-			wantLast:  0,
+		"empty slice": {
+			give:      []int{},
+			wantIndex: fallbackKey,
+			wantValue: fallbackValue,
+			fallback:  true,
 		},
-		"nil with func": {
-			give:      nil,
-			fn:        func() int { return 123 },
-			wantFirst: 123,
-			wantLast:  123,
-		},
-		"single": {
+		"single 1": {
 			give:      []int{123},
-			fn:        nil,
-			wantFirst: 123,
-			wantLast:  123,
+			wantIndex: 0,
+			wantValue: 123,
+			fallback:  false,
 		},
-		"negative": {
-			give:      []int{-123},
-			fn:        nil,
-			wantFirst: -123,
-			wantLast:  -123,
+		"single 2": {
+			give:      []int{0},
+			wantIndex: fallbackKey,
+			wantValue: fallbackValue,
+			fallback:  true,
 		},
-		"multiple": {
+		"double 1": {
 			give:      []int{123, 456},
-			fn:        nil,
-			wantFirst: 123,
-			wantLast:  456,
+			wantIndex: 0,
+			wantValue: 123,
+			fallback:  false,
 		},
-		"nested": {
-			give:      []int{0, 123, 0},
-			fn:        nil,
-			wantFirst: 123,
-			wantLast:  123,
+		"double 2": {
+			give:      []int{0, 456},
+			wantIndex: 1,
+			wantValue: 456,
+			fallback:  false,
 		},
-		"sparse": {
-			give:      []int{0, 123, 0, 456, 0},
-			fn:        nil,
-			wantFirst: 123,
-			wantLast:  456,
+		"double 3": {
+			give:      []int{123, 0},
+			wantIndex: 0,
+			wantValue: 123,
+			fallback:  false,
 		},
-		"zeroes": {
-			give:      []int{0, 0, 0},
-			fn:        nil,
-			wantFirst: 0,
-			wantLast:  0,
+		"double 4": {
+			give:      []int{0, 0},
+			wantIndex: fallbackKey,
+			wantValue: fallbackValue,
+			fallback:  true,
 		},
 	}
-
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
-			haveFirst := collections.FirstOfOr(tt.fn, tt.give...)
-			require.Equal(t, tt.wantFirst, haveFirst)
-			haveLast := collections.LastOfOr(tt.fn, tt.give...)
-			require.Equal(t, tt.wantLast, haveLast)
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.FirstOfOr(fallbackValue, tt.give...),
+			)
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.FirstOfSeqOr(fallbackValue, slices.Iter(tt.give)),
+			)
+			haveIndex, haveValue := collections.FirstOfSeq2Or(
+				fallbackKey,
+				fallbackValue,
+				slices.Iter2(tt.give),
+			)
+			require.Equal(t, tt.wantIndex, haveIndex)
+			require.Equal(t, tt.wantValue, haveValue)
+			require.Equal(t, tt.wantValue, collections.FirstOfFuncsOr(
+				fallbackValue,
+				toFuncs(tt.give)...,
+			))
+
+			var (
+				fallbackFunc  = toFunc(fallbackValue)
+				fallbackFunc2 = func() (int, int) {
+					return fallbackKey, fallbackValue
+				}
+			)
+
+			if tt.fallback {
+				require.Zero(t, collections.FirstOfOrElse(nil, tt.give...))
+				require.Zero(t, collections.FirstOfSeqOrElse(nil, slices.Iter(tt.give)))
+				haveIndex, haveValue = collections.FirstOfSeq2OrElse(nil, slices.Iter2(tt.give))
+				require.Zero(t, haveIndex)
+				require.Zero(t, haveValue)
+				require.Zero(t, collections.FirstOfFuncsOrElse(
+					nil,
+					toFuncs(tt.give)...,
+				))
+			} else {
+				require.Equal(t, tt.wantValue, collections.FirstOfOrElse(nil, tt.give...))
+				require.Equal(t, tt.wantValue, collections.FirstOfSeqOrElse(nil, slices.Iter(tt.give)))
+				haveIndex, haveValue = collections.FirstOfSeq2OrElse(
+					nil,
+					slices.Iter2(tt.give),
+				)
+				require.Equal(t, tt.wantIndex, haveIndex)
+				require.Equal(t, tt.wantValue, haveValue)
+				require.Equal(t, tt.wantValue, collections.FirstOfFuncsOrElse(
+					nil,
+					toFuncs(tt.give)...,
+				))
+			}
+
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.FirstOfOrElse(fallbackFunc, tt.give...),
+			)
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.FirstOfSeqOrElse(fallbackFunc, slices.Iter(tt.give)),
+			)
+			haveIndex, haveValue = collections.FirstOfSeq2OrElse(
+				fallbackFunc2,
+				slices.Iter2(tt.give),
+			)
+			require.Equal(t, tt.wantIndex, haveIndex)
+			require.Equal(t, tt.wantValue, haveValue)
+			require.Equal(t, tt.wantValue, collections.FirstOfFuncsOrElse(
+				fallbackFunc,
+				toFuncs(tt.give)...,
+			))
 		})
 	}
+}
+
+func TestLastOf(t *testing.T) {
+	cases := map[string]struct {
+		give      []int
+		wantIndex int
+		wantValue int
+	}{
+		"nil slice": {
+			give:      nil,
+			wantIndex: 0,
+			wantValue: 0,
+		},
+		"empty slice": {
+			give:      []int{},
+			wantIndex: 0,
+			wantValue: 0,
+		},
+		"single 1": {
+			give:      []int{123},
+			wantIndex: 0,
+			wantValue: 123,
+		},
+		"single 2": {
+			give:      []int{0},
+			wantIndex: 0,
+			wantValue: 0,
+		},
+		"double 1": {
+			give:      []int{123, 456},
+			wantIndex: 1,
+			wantValue: 456,
+		},
+		"double 2": {
+			give:      []int{0, 456},
+			wantIndex: 1,
+			wantValue: 456,
+		},
+		"double 3": {
+			give:      []int{123, 0},
+			wantIndex: 0,
+			wantValue: 123,
+		},
+		"double 4": {
+			give:      []int{0, 0},
+			wantIndex: 0,
+			wantValue: 0,
+		},
+	}
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, tt.wantValue, collections.LastOf(tt.give...))
+			require.Equal(t, tt.wantValue, collections.LastOfSeq(slices.Iter(tt.give)))
+			haveIndex, haveValue := collections.LastOfSeq2(slices.Iter2(tt.give))
+			require.Equal(t, tt.wantIndex, haveIndex)
+			require.Equal(t, tt.wantValue, haveValue)
+			require.Equal(t, tt.wantValue, collections.LastOfFuncs(toFuncs(tt.give)...))
+		})
+	}
+}
+
+func TestLastOfOr(t *testing.T) {
+	const (
+		fallbackKey   = -1
+		fallbackValue = -42
+	)
+	cases := map[string]struct {
+		give      []int
+		wantIndex int
+		wantValue int
+		fallback  bool
+	}{
+		"nil slice": {
+			give:      nil,
+			wantIndex: fallbackKey,
+			wantValue: fallbackValue,
+			fallback:  true,
+		},
+		"empty slice": {
+			give:      []int{},
+			wantIndex: fallbackKey,
+			wantValue: fallbackValue,
+			fallback:  true,
+		},
+		"single 1": {
+			give:      []int{123},
+			wantIndex: 0,
+			wantValue: 123,
+			fallback:  false,
+		},
+		"single 2": {
+			give:      []int{0},
+			wantIndex: fallbackKey,
+			wantValue: fallbackValue,
+			fallback:  true,
+		},
+		"double 1": {
+			give:      []int{123, 456},
+			wantIndex: 1,
+			wantValue: 456,
+			fallback:  false,
+		},
+		"double 2": {
+			give:      []int{0, 456},
+			wantIndex: 1,
+			wantValue: 456,
+			fallback:  false,
+		},
+		"double 3": {
+			give:      []int{123, 0},
+			wantIndex: 0,
+			wantValue: 123,
+			fallback:  false,
+		},
+		"double 4": {
+			give:      []int{0, 0},
+			wantIndex: fallbackKey,
+			wantValue: fallbackValue,
+			fallback:  true,
+		},
+	}
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.LastOfOr(fallbackValue, tt.give...),
+			)
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.LastOfSeqOr(fallbackValue, slices.Iter(tt.give)),
+			)
+			haveIndex, haveValue := collections.LastOfSeq2Or(
+				fallbackKey,
+				fallbackValue,
+				slices.Iter2(tt.give),
+			)
+			require.Equal(t, tt.wantIndex, haveIndex)
+			require.Equal(t, tt.wantValue, haveValue)
+			require.Equal(t, tt.wantValue, collections.LastOfFuncsOr(
+				fallbackValue,
+				toFuncs(tt.give)...,
+			))
+
+			var (
+				fallbackFunc  = toFunc(fallbackValue)
+				fallbackFunc2 = func() (int, int) {
+					return fallbackKey, fallbackValue
+				}
+			)
+
+			if tt.fallback {
+				require.Zero(t, collections.LastOfOrElse(nil, tt.give...))
+				require.Zero(t, collections.LastOfSeqOrElse(nil, slices.Iter(tt.give)))
+				haveIndex, haveValue = collections.LastOfSeq2OrElse(nil, slices.Iter2(tt.give))
+				require.Zero(t, haveIndex)
+				require.Zero(t, haveValue)
+				require.Zero(t, collections.LastOfFuncsOrElse(
+					nil,
+					toFuncs(tt.give)...,
+				))
+			} else {
+				require.Equal(t, tt.wantValue, collections.LastOfOrElse(nil, tt.give...))
+				require.Equal(t, tt.wantValue, collections.LastOfSeqOrElse(nil, slices.Iter(tt.give)))
+				haveIndex, haveValue = collections.LastOfSeq2OrElse(
+					nil,
+					slices.Iter2(tt.give),
+				)
+				require.Equal(t, tt.wantIndex, haveIndex)
+				require.Equal(t, tt.wantValue, haveValue)
+				require.Equal(t, tt.wantValue, collections.LastOfFuncsOrElse(
+					nil,
+					toFuncs(tt.give)...,
+				))
+			}
+
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.LastOfOrElse(fallbackFunc, tt.give...),
+			)
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.LastOfSeqOrElse(fallbackFunc, slices.Iter(tt.give)),
+			)
+			haveIndex, haveValue = collections.LastOfSeq2OrElse(
+				fallbackFunc2,
+				slices.Iter2(tt.give),
+			)
+			require.Equal(t, tt.wantIndex, haveIndex)
+			require.Equal(t, tt.wantValue, haveValue)
+			require.Equal(t, tt.wantValue, collections.LastOfFuncsOrElse(
+				fallbackFunc,
+				toFuncs(tt.give)...,
+			))
+		})
+	}
+}
+
+func toFunc[T any](value T) func() T {
+	return func() T {
+		return value
+	}
+}
+
+func toFuncs[T any, S ~[]T](x S) []func() T {
+	fns := make([]func() T, len(x))
+	for i, val := range x {
+		fns[i] = toFunc(val)
+	}
+	return fns
 }

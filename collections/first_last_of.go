@@ -22,6 +22,10 @@
 // slices, maps, and sets.
 package collections
 
+import (
+	"iter"
+)
+
 // FirstOf returns the first T in values that is not a zero value of T.
 func FirstOf[T comparable](values ...T) T {
 	var zero T
@@ -33,11 +37,115 @@ func FirstOf[T comparable](values ...T) T {
 	return zero
 }
 
-// FirstOfFuncs returns the first T produced by a function in fns that is not a
-// zero value of T.
+// FirstOfOr returns the first T in values that is not a zero value of T, or
+// otherwise returns the given fallback.
+func FirstOfOr[T comparable](fallback T, values ...T) T {
+	var zero T
+	if x := FirstOf(values...); x != zero {
+		return x
+	}
+	return fallback
+}
+
+// FirstOfOrElse returns the first T in values that is not a zero value of T,
+// or otherwise invokes fallback (if non-nil) to produce a return value.
+func FirstOfOrElse[T comparable](fallback func() T, values ...T) T {
+	var zero T
+	if x := FirstOf(values...); x != zero {
+		return x
+	}
+	if fallback != nil {
+		return fallback()
+	}
+	return zero
+}
+
+// FirstOfSeq returns the first T in seq that is not a zero value of T.
+func FirstOfSeq[T comparable](seq iter.Seq[T]) (value T) {
+	var zero T
+	seq(func(x T) bool { //nolint:errcheck
+		value = x
+		return value == zero
+	})
+	return
+}
+
+// FirstOfSeqOr returns the first V in seq that is not a zero value of V, or
+// otherwise returns the given fallback.
+func FirstOfSeqOr[T comparable](fallback T, seq iter.Seq[T]) T {
+	var zero T
+	if x := FirstOfSeq(seq); x != zero {
+		return x
+	}
+	return fallback
+}
+
+// FirstOfSeqOrElse returns the first V in seq that is not a zero value of V,
+// or otherwise invokes fallback (if non-nil) to produce a return value.
+func FirstOfSeqOrElse[T comparable](fallback func() T, seq iter.Seq[T]) T {
+	var zero T
+	if x := FirstOfSeq(seq); x != zero {
+		return x
+	}
+	if fallback != nil {
+		return fallback()
+	}
+	return zero
+}
+
+// FirstOfSeq2 returns the first (K,V) in seq where V is not the zero value.
+func FirstOfSeq2[K comparable, V comparable](
+	seq iter.Seq2[K, V],
+) (key K, value V) {
+	var zero V
+	seq(func(k K, v V) bool {
+		if v != zero {
+			key = k
+			value = v
+			return false
+		}
+		return true
+	})
+	return
+}
+
+// FirstOfSeq2Or returns the first (K,V) in seq where V is not the zero value,
+// or otherwise returns the given fallbacks.
+func FirstOfSeq2Or[K comparable, V comparable](
+	fallbackKey K,
+	fallbackValue V,
+	seq iter.Seq2[K, V],
+) (K, V) {
+	var zero V
+	if k, v := FirstOfSeq2(seq); v != zero {
+		return k, v
+	}
+	return fallbackKey, fallbackValue
+}
+
+// FirstOfSeq2OrElse returns the first (K,V) in seq where V is not the zero
+// value, or otherwise invokes fallback (if non-nil) to produce a return value.
+func FirstOfSeq2OrElse[K comparable, V comparable](
+	fallback func() (K, V),
+	seq iter.Seq2[K, V],
+) (K, V) {
+	var zero V
+	if k, v := FirstOfSeq2(seq); v != zero {
+		return k, v
+	}
+	if fallback != nil {
+		return fallback()
+	}
+	var key K
+	return key, zero
+}
+
+// FirstOfFuncs returns the first T produced by a non-nil function in fns that
+// is not a zero value of T. Note that because the given functions will be
+// evaluated in order, higher-indexed functions may not be called.
 func FirstOfFuncs[T comparable](fns ...func() T) T {
 	var zero T
-	for i := 0; i < len(fns); i++ {
+	for i := range len(fns) {
 		if fns[i] == nil {
 			continue
 		}
@@ -48,15 +156,29 @@ func FirstOfFuncs[T comparable](fns ...func() T) T {
 	return zero
 }
 
-// FirstOfOr returns the first T in values that is not a zero value of T, or
-// invokes fn to produce a T otherwise.
-func FirstOfOr[T comparable](fn func() T, values ...T) T {
+// FirstOfFuncsOr returns the first T produced by a non-nil function in fns
+// that is not a zero value of T, or otherwise returns the given fallback.
+// Note that because the given functions will be evaluated in order,
+// higher-indexed functions may not be called.
+func FirstOfFuncsOr[T comparable](fallback T, fns ...func() T) T {
 	var zero T
-	if x := FirstOf(values...); x != zero {
+	if x := FirstOfFuncs(fns...); x != zero {
 		return x
 	}
-	if fn != nil {
-		return fn()
+	return fallback
+}
+
+// FirstOfFuncsOrElse returns the first T produced by a non-nil function in fns
+// that is not a zero value of T, or otherwise invokes fallback (if non-nil) to
+// produce a return value. Note that because the given functions will be
+// evaluated in order, higher-indexed functions may not be called.
+func FirstOfFuncsOrElse[T comparable](fallback func() T, fns ...func() T) T {
+	var zero T
+	if x := FirstOfFuncs(fns...); x != zero {
+		return x
+	}
+	if fallback != nil {
+		return fallback()
 	}
 	return zero
 }
@@ -65,16 +187,122 @@ func FirstOfOr[T comparable](fn func() T, values ...T) T {
 func LastOf[T comparable](values ...T) T {
 	var zero T
 	for i := len(values) - 1; i >= 0; i-- {
-		if value := values[i]; value != zero {
-			return value
+		if x := values[i]; x != zero {
+			return x
 		}
 	}
 	return zero
 }
 
-// LastOfFuncs returns the last T produced by a function in fns that is not a
-// zero value of T. The given functions will be evaluated in reverse order;
-// functions provided earlier than a successful function will not be called.
+// LastOfOr returns the last T in values that is not a zero value of T, or
+// otherwise returns the given fallback.
+func LastOfOr[T comparable](fallback T, values ...T) T {
+	var zero T
+	if x := LastOf(values...); x != zero {
+		return x
+	}
+	return fallback
+}
+
+// LastOfOrElse returns the last T in values that is not a zero value of T, or
+// otherwise invokes fallback (if non-nil) to produce a return value.
+func LastOfOrElse[T comparable](fn func() T, values ...T) T {
+	var zero T
+	for i := len(values) - 1; i >= 0; i-- {
+		if value := values[i]; value != zero {
+			return value
+		}
+	}
+	if fn != nil {
+		return fn()
+	}
+	return zero
+}
+
+// LastOfSeq returns the last T in seq that is not a zero value of T.
+func LastOfSeq[T comparable](seq iter.Seq[T]) (value T) {
+	var zero T
+	seq(func(x T) bool { //nolint:errcheck
+		if x != zero {
+			value = x
+		}
+		return true
+	})
+	return
+}
+
+// LastOfSeqOr returns the last V in seq that is not a zero value of V, or
+// otherwise returns the given fallback.
+func LastOfSeqOr[T comparable](fallback T, seq iter.Seq[T]) T {
+	var zero T
+	if x := LastOfSeq(seq); x != zero {
+		return x
+	}
+	return fallback
+}
+
+// LastOfSeqOrElse returns the last V in seq that is not a zero value of V,
+// or otherwise invokes fallback (if non-nil) to produce a return value.
+func LastOfSeqOrElse[T comparable](fallback func() T, seq iter.Seq[T]) T {
+	var zero T
+	if x := LastOfSeq(seq); x != zero {
+		return x
+	}
+	if fallback != nil {
+		return fallback()
+	}
+	return zero
+}
+
+// LastOfSeq2 returns the last (K,V) in seq where V is not the zero value.
+func LastOfSeq2[K comparable, V comparable](
+	seq iter.Seq2[K, V],
+) (key K, value V) {
+	var zero V
+	seq(func(k K, v V) bool {
+		if v != zero {
+			key = k
+			value = v
+		}
+		return true
+	})
+	return
+}
+
+// LastOfSeq2Or returns the last (K,V) in seq where V is not the zero value, or
+// otherwise returns the given fallbacks.
+func LastOfSeq2Or[K comparable, V comparable](
+	fallbackKey K,
+	fallbackValue V,
+	seq iter.Seq2[K, V],
+) (K, V) {
+	var zero V
+	if k, v := LastOfSeq2(seq); v != zero {
+		return k, v
+	}
+	return fallbackKey, fallbackValue
+}
+
+// LastOfSeq2OrElse returns the last (K,V) in seq where V is not the zero
+// value, or otherwise invokes fallback (if non-nil) to produce a return value.
+func LastOfSeq2OrElse[K comparable, V comparable](
+	fallback func() (K, V),
+	seq iter.Seq2[K, V],
+) (K, V) {
+	var zero V
+	if k, v := LastOfSeq2(seq); v != zero {
+		return k, v
+	}
+	if fallback != nil {
+		return fallback()
+	}
+	var key K
+	return key, zero
+}
+
+// LastOfFuncs returns the last T produced by a non-nil function in fns that
+// is not a zero value of T. Note that because the given functions will be
+// evaluated in reverse order, lower-indexed functions may not be called.
 func LastOfFuncs[T comparable](fns ...func() T) T {
 	var zero T
 	for i := len(fns) - 1; i >= 0; i-- {
@@ -88,15 +316,29 @@ func LastOfFuncs[T comparable](fns ...func() T) T {
 	return zero
 }
 
-// LastOfOr returns the last T in values that is not a zero value of T, or
-// invokes fn to produce a T otherwise.
-func LastOfOr[T comparable](fn func() T, values ...T) T {
+// LastOfFuncsOr returns the last T produced by a non-nil function in fns
+// that is not a zero value of T, or otherwise returns the given fallback.
+// Note that because the given functions will be evaluated in order,
+// lower-indexed functions may not be called.
+func LastOfFuncsOr[T comparable](fallback T, fns ...func() T) T {
 	var zero T
-	if x := LastOf(values...); x != zero {
+	if x := LastOfFuncs(fns...); x != zero {
 		return x
 	}
-	if fn != nil {
-		return fn()
+	return fallback
+}
+
+// LastOfFuncsOrElse returns the last T produced by a non-nil function in fns
+// that is not a zero value of T, or otherwise invokes fallback (if non-nil) to
+// produce a return value. Note that because the given functions will be
+// evaluated in order, lower-indexed functions may not be called.
+func LastOfFuncsOrElse[T comparable](fallback func() T, fns ...func() T) T {
+	var zero T
+	if x := LastOfFuncs(fns...); x != zero {
+		return x
+	}
+	if fallback != nil {
+		return fallback()
 	}
 	return zero
 }
