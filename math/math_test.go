@@ -18,12 +18,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE THE SOFTWARE.
 
-// Package math provides math-related types and utilities.
-package math
+package math_test
 
-// A Numeric type is any basic number type.
-type Numeric interface {
-	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
-		~int | ~int8 | ~int16 | ~int32 | ~int64 |
-		~float32 | ~float64
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.mway.dev/x/math"
+)
+
+func TestAbs(t *testing.T) {
+	require.Equal(t, 0, math.Abs(0))
+	require.Equal(t, 1, math.Abs(1))
+	require.Equal(t, 1, math.Abs(-1))
+}
+
+func TestMean(t *testing.T) {
+	require.Equal(t, 2, math.Mean(1, 2, 3))
+	require.Equal(t, 2.0, math.MeanFloat64(1, 2, 3))
+	require.Equal(t, 2, math.Mean(1, 2, 3, 4))
+	require.Equal(t, 2.5, math.MeanFloat64(1, 2, 3, 4))
+	require.Equal(t, 0, math.Mean(0, 0, 0, 0, 0, 1, 1, 1, 1, 1))
+	require.Equal(t, 0.5, math.MeanFloat64(0, 0, 0, 0, 0, 1, 1, 1, 1, 1))
 }
