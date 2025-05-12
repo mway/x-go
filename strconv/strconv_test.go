@@ -164,7 +164,12 @@ func TestParseFloat(t *testing.T) {
 		mustError[float64](t, want)(strconv.Parse[float64]("invalid"))
 		mustError[float64](t, want)(strconv.ParseFloat[float64]("true"))
 		mustError[float64](t, want)(strconv.Parse[float64]("true"))
-		mustError[float32](t, want)(strconv.ParseFloat[float32]("   123 .456   "))
+		mustError[float32](
+			t,
+			want,
+		)(
+			strconv.ParseFloat[float32]("   123 .456   "),
+		)
 		mustError[float32](t, want)(strconv.Parse[float32]("   123 .456   "))
 	})
 }

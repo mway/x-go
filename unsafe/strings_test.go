@@ -67,7 +67,19 @@ func TestBytesToString(t *testing.T) {
 			expect: "",
 		},
 		"with null": {
-			input:  []byte{'h', 'e', 'l', 'l', 'o', 0, 'w', 'o', 'r', 'l', 'd'},
+			input: []byte{
+				'h',
+				'e',
+				'l',
+				'l',
+				'o',
+				0,
+				'w',
+				'o',
+				'r',
+				'l',
+				'd',
+			},
 			expect: "hello\x00world",
 		},
 	}

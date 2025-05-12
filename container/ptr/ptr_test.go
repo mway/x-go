@@ -45,8 +45,16 @@ func TestLoadOr(t *testing.T) {
 }
 
 func TestLoadOrFunc(t *testing.T) {
-	require.Equal(t, 123, ptr.LoadOrFunc((*int)(nil), func() int { return 123 }))
-	require.Equal(t, 456, ptr.LoadOrFunc(ptr.To(456), func() int { return 123 }))
+	require.Equal(
+		t,
+		123,
+		ptr.LoadOrFunc((*int)(nil), func() int { return 123 }),
+	)
+	require.Equal(
+		t,
+		456,
+		ptr.LoadOrFunc(ptr.To(456), func() int { return 123 }),
+	)
 }
 
 func TestNew(t *testing.T) {

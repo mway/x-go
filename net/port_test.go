@@ -41,11 +41,17 @@ func TestRandomPorts(t *testing.T) {
 				expectError: nil,
 			},
 			"listen error": {
-				listen:      newUncloseableListener(errListenSentinel, true).Listen,
+				listen: newUncloseableListener(
+					errListenSentinel,
+					true,
+				).Listen,
 				expectError: errListenSentinel,
 			},
 			"close error": {
-				listen:      newUncloseableListener(errCloseSentinel, false).Listen,
+				listen: newUncloseableListener(
+					errCloseSentinel,
+					false,
+				).Listen,
 				expectError: errCloseSentinel,
 			},
 		}
@@ -170,7 +176,7 @@ func (l uncloseableListener) Listen(
 }
 
 func (l uncloseableListener) Accept() (net.Conn, error) {
-	return nil, nil
+	return nil, nil //nolint:nilnil
 }
 
 func (l uncloseableListener) Close() error {

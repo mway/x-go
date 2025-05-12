@@ -126,7 +126,11 @@ func TestRecvWithTimeout(t *testing.T) {
 			)
 
 			for _, want := range values {
-				have, ok := RecvWithTimeout(context.Background(), src, time.Second)
+				have, ok := RecvWithTimeout(
+					context.Background(),
+					src,
+					time.Second,
+				)
 				require.True(t, ok)
 				require.Equal(t, want, have)
 			}
@@ -215,7 +219,11 @@ func TestRecvWithTimeout(t *testing.T) {
 			go func() {
 				defer close(done)
 				close(ready)
-				have, ok := RecvWithTimeout(context.Background(), src, time.Second)
+				have, ok := RecvWithTimeout(
+					context.Background(),
+					src,
+					time.Second,
+				)
 				require.False(t, ok)
 				require.Zero(t, have)
 			}()
@@ -325,7 +333,10 @@ func TestSendWithTimeout(t *testing.T) {
 
 	t.Run("nil channel", func(t *testing.T) {
 		var dst chan int
-		require.False(t, SendWithTimeout(context.Background(), dst, 12345, time.Second))
+		require.False(
+			t,
+			SendWithTimeout(context.Background(), dst, 12345, time.Second),
+		)
 	})
 
 	t.Run("blocked channel context canceled", func(t *testing.T) {

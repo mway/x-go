@@ -66,12 +66,12 @@ func (p Path) Prepend(paths ...string) (newpath Path, err error) {
 			continue
 		}
 
-		buf.WriteString(path)               //nolint:errcheck
-		buf.WriteByte(os.PathListSeparator) //nolint:errcheck
+		buf.WriteString(path)
+		buf.WriteByte(os.PathListSeparator)
 	}
 
 	// Write the current value after any prepended path(s).
-	buf.WriteString(p.Value()) //nolint:errcheck
+	buf.WriteString(p.Value())
 
 	// Create a copy of this Path and persist the change to the copy (and the
 	// environment).
@@ -115,7 +115,7 @@ func (p Path) Append(paths ...string) (newpath Path, err error) {
 	buf.Grow(len(p.v.Value()) + extra)
 
 	// Write the current value before any appended path(s).
-	buf.WriteString(p.v.Value()) //nolint:errcheck
+	buf.WriteString(p.v.Value())
 
 	// Append all of the path fragments to the current value.
 	for _, path := range paths {
@@ -123,8 +123,8 @@ func (p Path) Append(paths ...string) (newpath Path, err error) {
 			continue
 		}
 
-		buf.WriteByte(os.PathListSeparator) //nolint:errcheck
-		buf.WriteString(path)               //nolint:errcheck
+		buf.WriteByte(os.PathListSeparator)
+		buf.WriteString(path)
 	}
 
 	// Create a copy of this Path and persist the change to the copy (and the

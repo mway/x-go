@@ -41,7 +41,7 @@ func Filter[T any, P ~func(T) bool](x []T, pred P) []T {
 		return nil
 	}
 
-	var tmp []T
+	var tmp []T //nolint:prealloc
 	for i := range x {
 		if !pred(x[i]) {
 			continue

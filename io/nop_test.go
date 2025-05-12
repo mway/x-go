@@ -43,7 +43,7 @@ func TestNop(t *testing.T) {
 	require.Len(t, b, 0)
 	require.NoError(t, err)
 
-	n, err = x.Write([]byte("hello"))
+	n, err = x.WriteString("hello")
 	require.Equal(t, 5, n)
 	require.NoError(t, err)
 
