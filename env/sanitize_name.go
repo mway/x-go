@@ -83,7 +83,7 @@ func SanitizeName(str string) string {
 			if i > 0 {
 				maybeWriteRune(i, r, false /* replace */)
 			} else {
-				_, _ = buf.WriteRune('_') //nolint:errcheck
+				_ = buf.WriteByte('_')
 				maybeWriteRune(i, r, true)
 			}
 		default:

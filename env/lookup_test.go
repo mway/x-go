@@ -48,9 +48,15 @@ func TestGet(t *testing.T) {
 		"os.LookupEnv": {
 			setup: func(t *testing.T) CleanupFunc {
 				return vars{
-					env.MustVar(env.NewVarWithValue("TEST_VAR_1", t.Name()+"1")),
-					env.MustVar(env.NewVarWithValue("TEST_VAR_2", t.Name()+"2")),
-					env.MustVar(env.NewVarWithValue("TEST_VAR_3", t.Name()+"3")),
+					env.MustVar(
+						env.NewVarWithValue("TEST_VAR_1", t.Name()+"1"),
+					),
+					env.MustVar(
+						env.NewVarWithValue("TEST_VAR_2", t.Name()+"2"),
+					),
+					env.MustVar(
+						env.NewVarWithValue("TEST_VAR_3", t.Name()+"3"),
+					),
 				}.MustRestore
 			},
 			opts: func(*testing.T) []env.LookupOption {
@@ -107,9 +113,15 @@ func TestLookup(t *testing.T) {
 		"os.LookupEnv": {
 			setup: func(t *testing.T) CleanupFunc {
 				return vars{
-					env.MustVar(env.NewVarWithValue("TEST_VAR_1", t.Name()+"1")),
-					env.MustVar(env.NewVarWithValue("TEST_VAR_2", t.Name()+"2")),
-					env.MustVar(env.NewVarWithValue("TEST_VAR_3", t.Name()+"3")),
+					env.MustVar(
+						env.NewVarWithValue("TEST_VAR_1", t.Name()+"1"),
+					),
+					env.MustVar(
+						env.NewVarWithValue("TEST_VAR_2", t.Name()+"2"),
+					),
+					env.MustVar(
+						env.NewVarWithValue("TEST_VAR_3", t.Name()+"3"),
+					),
 				}.MustRestore
 			},
 			opts: _noOptions,

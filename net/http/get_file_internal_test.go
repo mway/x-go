@@ -45,7 +45,7 @@ func TestGetFile_Nominal(t *testing.T) {
 	err := tempdir.With(func(dst string) {
 		stub.With(
 			&_clientDo,
-			newClientDoFunc(t, giveURL, t.Name(), nil),
+			newClientDoFunc(t, giveURL, t.Name(), nil), //nolint:bodyclose
 			func() {
 				dst = filepath.Join(dst, wantFile)
 				require.NoError(t, GetFile(giveURL, dst))
@@ -63,7 +63,7 @@ func TestGetFile_HTTPGetError(t *testing.T) {
 	wantErr := errors.New(t.Name())
 	stub.With(
 		&_clientDo,
-		newClientDoFunc(t, "http://foo", "", wantErr),
+		newClientDoFunc(t, "http://foo", "", wantErr), //nolint:bodyclose
 		func() {
 			require.ErrorIs(t, GetFile("http://foo", ""), wantErr)
 		},
@@ -112,7 +112,7 @@ func TestGetFile_OSStatError(t *testing.T) {
 	err := tempdir.With(func(dst string) {
 		stub.With(
 			&_clientDo,
-			newClientDoFunc(t, giveURL, t.Name(), nil),
+			newClientDoFunc(t, giveURL, t.Name(), nil), //nolint:bodyclose
 			func() {
 				stub.With(&_osStat, osStat, func() {
 					dst = filepath.Join(dst, wantFile)
@@ -137,7 +137,7 @@ func TestGetFile_OSMkdirAllError(t *testing.T) {
 	err := tempdir.With(func(dst string) {
 		stub.With(
 			&_clientDo,
-			newClientDoFunc(t, giveURL, t.Name(), nil),
+			newClientDoFunc(t, giveURL, t.Name(), nil), //nolint:bodyclose
 			func() {
 				stub.With(&_osMkdirAll, mkdirAll, func() {
 					dst = filepath.Join(dst, "foo", wantFile)
@@ -161,11 +161,15 @@ func TestGetFile_DestNotWritable(t *testing.T) {
 	err := tempdir.With(func(dst string) {
 		stub.With(
 			&_clientDo,
-			newClientDoFunc(t, giveURL, t.Name(), nil),
+			newClientDoFunc(t, giveURL, t.Name(), nil), //nolint:bodyclose
 			func() {
 				stub.With(&_unixAccess, unixAccess, func() {
 					dst = filepath.Join(dst, "foo", wantFile)
-					require.ErrorIs(t, GetFile(giveURL, dst), ErrDestNotWritable)
+					require.ErrorIs(
+						t,
+						GetFile(giveURL, dst),
+						ErrDestNotWritable,
+					)
 				})
 			},
 		)
@@ -182,7 +186,7 @@ func TestGetFile_DestIsDir(t *testing.T) {
 	err := tempdir.With(func(dst string) {
 		stub.With(
 			&_clientDo,
-			newClientDoFunc(t, giveURL, t.Name(), nil),
+			newClientDoFunc(t, giveURL, t.Name(), nil), //nolint:bodyclose
 			func() {
 				dst = filepath.Join(dst, "foo", wantFile)
 				dir := filepath.Dir(dst)

@@ -49,7 +49,10 @@ func LinkDoubly[T any](value T, extra ...T) *DoubleNode[T] {
 
 // LinkDoublyWithTail doubly-links value and any extra values in order,
 // returning the head and tail of the list.
-func LinkDoublyWithTail[T any](value T, extra ...T) (*DoubleNode[T], *DoubleNode[T]) {
+func LinkDoublyWithTail[T any](
+	value T,
+	extra ...T,
+) (*DoubleNode[T], *DoubleNode[T]) {
 	var (
 		head = NewDoubleNode(value)
 		tail = head

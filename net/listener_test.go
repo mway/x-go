@@ -107,6 +107,6 @@ func withListen(listen listenFunc, fn func()) {
 
 type nopListener struct{}
 
-func (nopListener) Accept() (net.Conn, error) { return nil, nil }
+func (nopListener) Accept() (net.Conn, error) { return nil, nil } //nolint:nilnil
 func (nopListener) Close() error              { return nil }
 func (nopListener) Addr() net.Addr            { return nil }

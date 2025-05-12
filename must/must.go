@@ -103,8 +103,6 @@ type MustFunc[T any] interface {
 }
 
 // Func calls Must with the values returned by fn.
-//
-//nolint:revive
 func Func[T any, F MustFunc[T]](fn F) T {
 	type (
 		fnError = func() (T, error)

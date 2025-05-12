@@ -218,7 +218,11 @@ func TestExtract(t *testing.T) {
 
 						raw, readErr := os.ReadFile(path)
 						require.NoError(t, readErr)
-						require.Equal(t, contents, string(bytes.TrimSpace(raw)))
+						require.Equal(
+							t,
+							contents,
+							string(bytes.TrimSpace(raw)),
+						)
 					}
 
 					for _, relpath := range tt.wantMissing {

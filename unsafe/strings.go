@@ -38,7 +38,7 @@ func StringToBytes(x string) []byte {
 	if len(x) == 0 {
 		return nil
 	}
-	return unsafe.Slice(unsafe.StringData(x), len(x))
+	return unsafe.Slice(unsafe.StringData(x), len(x)) //nolint:gosec
 }
 
 // BytesToString returns a string that uses x as its underlying storage
@@ -55,5 +55,5 @@ func BytesToString(x []byte) string {
 	if len(x) == 0 {
 		return ""
 	}
-	return unsafe.String(unsafe.SliceData(x), len(x))
+	return unsafe.String(unsafe.SliceData(x), len(x)) //nolint:gosec
 }

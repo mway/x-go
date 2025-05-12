@@ -34,7 +34,7 @@ const _createFileFlags = os.O_CREATE | os.O_TRUNC | os.O_WRONLY
 // returned by fn as well as any other errors encountered.
 func WithFileReader(path string, fn func(r io.Reader) error) (err error) {
 	var src io.ReadCloser
-	if src, err = os.Open(path); err != nil {
+	if src, err = os.Open(path); err != nil { //nolint:gosec
 		return
 	}
 	defer func() {

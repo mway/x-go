@@ -118,7 +118,9 @@ func TestWithFileModeWriter(t *testing.T) {
 	err := tempdir.With(func(_ string) {
 		var (
 			wantContent = []byte("hello")
-			wantMode    = fs.FileMode(0o741) // intentionally unusual permission
+			wantMode    = fs.FileMode(
+				0o741,
+			) // intentionally unusual permission
 		)
 
 		require.NoError(
@@ -139,7 +141,11 @@ func TestWithFileModeWriter(t *testing.T) {
 
 		haveStat, err := goos.Stat(t.Name())
 		require.NoError(t, err)
-		require.Equal(t, wantMode.String(), (haveStat.Mode() & fs.ModePerm).String())
+		require.Equal(
+			t,
+			wantMode.String(),
+			(haveStat.Mode() & fs.ModePerm).String(),
+		)
 	})
 	require.NoError(t, err)
 }

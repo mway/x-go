@@ -153,14 +153,18 @@ func TestBasicNode_EmptyOrNil(t *testing.T) {
 				require.Equal(t, 1, child.Len())
 
 				var calls int
-				tt.node.Walk(func(*tree.BasicNode[string, string]) error { //nolint:errcheck
-					calls++
-					return nil
-				})
-				tt.node.WalkRev(func(*tree.BasicNode[string, string]) error { //nolint:errcheck
-					calls++
-					return nil
-				})
+				require.NoError(t, tt.node.Walk(
+					func(*tree.BasicNode[string, string]) error {
+						calls++
+						return nil
+					},
+				))
+				require.NoError(t, tt.node.WalkRev(
+					func(*tree.BasicNode[string, string]) error {
+						calls++
+						return nil
+					},
+				))
 				require.Equal(t, tt.wantCalls*2, calls)
 			})
 		})

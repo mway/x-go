@@ -63,7 +63,7 @@ func FirstOfOrElse[T comparable](fallback func() T, values ...T) T {
 // FirstOfSeq returns the first T in seq that is not a zero value of T.
 func FirstOfSeq[T comparable](seq iter.Seq[T]) (value T) {
 	var zero T
-	seq(func(x T) bool { //nolint:errcheck
+	seq(func(x T) bool {
 		value = x
 		return value == zero
 	})
@@ -222,7 +222,7 @@ func LastOfOrElse[T comparable](fn func() T, values ...T) T {
 // LastOfSeq returns the last T in seq that is not a zero value of T.
 func LastOfSeq[T comparable](seq iter.Seq[T]) (value T) {
 	var zero T
-	seq(func(x T) bool { //nolint:errcheck
+	seq(func(x T) bool {
 		if x != zero {
 			value = x
 		}

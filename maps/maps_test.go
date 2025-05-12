@@ -32,7 +32,7 @@ import (
 
 func TestFilter(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
-		require.Nil(t, maps.Filter((map[int]int)(nil), func(int, int) bool {
+		require.Nil(t, maps.Filter(map[int]int(nil), func(int, int) bool {
 			return true
 		}))
 	})

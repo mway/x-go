@@ -78,11 +78,21 @@ func TestFirstOf(t *testing.T) {
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, tt.wantValue, collections.FirstOf(tt.give...))
-			require.Equal(t, tt.wantValue, collections.FirstOfSeq(slices.Iter(tt.give)))
-			haveIndex, haveValue := collections.FirstOfSeq2(slices.Iter2(tt.give))
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.FirstOfSeq(slices.Iter(tt.give)),
+			)
+			haveIndex, haveValue := collections.FirstOfSeq2(
+				slices.Iter2(tt.give),
+			)
 			require.Equal(t, tt.wantIndex, haveIndex)
 			require.Equal(t, tt.wantValue, haveValue)
-			require.Equal(t, tt.wantValue, collections.FirstOfFuncs(toFuncs(tt.give)...))
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.FirstOfFuncs(toFuncs(tt.give)...),
+			)
 		})
 	}
 }
@@ -145,7 +155,11 @@ func TestFirstOfLastOfFuncs_Nil(t *testing.T) {
 
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
-			require.Equal(t, tt.wantFirst, collections.FirstOfFuncs(tt.funcs...))
+			require.Equal(
+				t,
+				tt.wantFirst,
+				collections.FirstOfFuncs(tt.funcs...),
+			)
 			require.Equal(t, tt.wantLast, collections.LastOfFuncs(tt.funcs...))
 		})
 	}
@@ -244,8 +258,14 @@ func TestFirstOfOr(t *testing.T) {
 
 			if tt.fallback {
 				require.Zero(t, collections.FirstOfOrElse(nil, tt.give...))
-				require.Zero(t, collections.FirstOfSeqOrElse(nil, slices.Iter(tt.give)))
-				haveIndex, haveValue = collections.FirstOfSeq2OrElse(nil, slices.Iter2(tt.give))
+				require.Zero(
+					t,
+					collections.FirstOfSeqOrElse(nil, slices.Iter(tt.give)),
+				)
+				haveIndex, haveValue = collections.FirstOfSeq2OrElse(
+					nil,
+					slices.Iter2(tt.give),
+				)
 				require.Zero(t, haveIndex)
 				require.Zero(t, haveValue)
 				require.Zero(t, collections.FirstOfFuncsOrElse(
@@ -275,7 +295,10 @@ func TestFirstOfOr(t *testing.T) {
 			require.Equal(
 				t,
 				tt.wantValue,
-				collections.FirstOfSeqOrElse(fallbackFunc, slices.Iter(tt.give)),
+				collections.FirstOfSeqOrElse(
+					fallbackFunc,
+					slices.Iter(tt.give),
+				),
 			)
 			haveIndex, haveValue = collections.FirstOfSeq2OrElse(
 				fallbackFunc2,
@@ -341,11 +364,21 @@ func TestLastOf(t *testing.T) {
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, tt.wantValue, collections.LastOf(tt.give...))
-			require.Equal(t, tt.wantValue, collections.LastOfSeq(slices.Iter(tt.give)))
-			haveIndex, haveValue := collections.LastOfSeq2(slices.Iter2(tt.give))
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.LastOfSeq(slices.Iter(tt.give)),
+			)
+			haveIndex, haveValue := collections.LastOfSeq2(
+				slices.Iter2(tt.give),
+			)
 			require.Equal(t, tt.wantIndex, haveIndex)
 			require.Equal(t, tt.wantValue, haveValue)
-			require.Equal(t, tt.wantValue, collections.LastOfFuncs(toFuncs(tt.give)...))
+			require.Equal(
+				t,
+				tt.wantValue,
+				collections.LastOfFuncs(toFuncs(tt.give)...),
+			)
 		})
 	}
 }
@@ -443,8 +476,14 @@ func TestLastOfOr(t *testing.T) {
 
 			if tt.fallback {
 				require.Zero(t, collections.LastOfOrElse(nil, tt.give...))
-				require.Zero(t, collections.LastOfSeqOrElse(nil, slices.Iter(tt.give)))
-				haveIndex, haveValue = collections.LastOfSeq2OrElse(nil, slices.Iter2(tt.give))
+				require.Zero(
+					t,
+					collections.LastOfSeqOrElse(nil, slices.Iter(tt.give)),
+				)
+				haveIndex, haveValue = collections.LastOfSeq2OrElse(
+					nil,
+					slices.Iter2(tt.give),
+				)
 				require.Zero(t, haveIndex)
 				require.Zero(t, haveValue)
 				require.Zero(t, collections.LastOfFuncsOrElse(
@@ -474,7 +513,10 @@ func TestLastOfOr(t *testing.T) {
 			require.Equal(
 				t,
 				tt.wantValue,
-				collections.LastOfSeqOrElse(fallbackFunc, slices.Iter(tt.give)),
+				collections.LastOfSeqOrElse(
+					fallbackFunc,
+					slices.Iter(tt.give),
+				),
 			)
 			haveIndex, haveValue = collections.LastOfSeq2OrElse(
 				fallbackFunc2,

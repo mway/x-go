@@ -330,7 +330,11 @@ func TestSet_Intersect(t *testing.T) {
 
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
-			require.ElementsMatch(t, tt.want, tt.base.Intersect(tt.give).ToSlice())
+			require.ElementsMatch(
+				t,
+				tt.want,
+				tt.base.Intersect(tt.give).ToSlice(),
+			)
 		})
 	}
 }
