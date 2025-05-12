@@ -21,7 +21,6 @@
 package unsafe
 
 import (
-	"math"
 	"unsafe"
 )
 
@@ -39,13 +38,7 @@ func StringToBytes(x string) []byte {
 	if len(x) == 0 {
 		return nil
 	}
-
-	const lim = math.MaxInt32 - math.MaxInt16
-	if len(x) > lim {
-		return []byte(x)
-	}
-
-	return (*[lim]byte)((*stringHeader)(unsafe.Pointer(&x)).Data)[:len(x):len(x)]
+	return unsafe.Slice(unsafe.StringData(x), len(x))
 }
 
 // BytesToString returns a string that uses x as its underlying storage
@@ -62,25 +55,5 @@ func BytesToString(x []byte) string {
 	if len(x) == 0 {
 		return ""
 	}
-
-	var (
-		slice = (*sliceHeader)(unsafe.Pointer(&x))
-		str   = stringHeader{
-			Data: slice.Data,
-			Len:  slice.Len,
-		}
-	)
-
-	return *(*string)(unsafe.Pointer(&str))
-}
-
-type sliceHeader struct {
-	Data unsafe.Pointer
-	Len  int
-	Cap  int
-}
-
-type stringHeader struct {
-	Data unsafe.Pointer
-	Len  int
+	return unsafe.String(unsafe.SliceData(x), len(x))
 }
