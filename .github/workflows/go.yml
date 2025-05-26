@@ -19,32 +19,58 @@ jobs:
         go: [stable, oldstable]
         include:
           - go: stable
-            golangci: v2.1.6
+            golangci: v2.1
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
-
       - name: Build
         run: go build -v ./...
 
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [stable, oldstable]
+        include:
+          - go: stable
+            golangci: v2.1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
       - name: Test
         run: go test -v -race -coverprofile cover.out ./...
+      - name: Prepare Coverage
+        run: go tool cover -html cover.out -o cover.html
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [stable]
+        include:
+          - go: stable
+            golangci: v2.1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
       - name: Lint
         uses: golangci/golangci-lint-action@v8
         if: matrix.golangci
         with:
           version: ${{ matrix.golangci }}
-
-      - name: Prepare Coverage
-        run: go tool cover -html cover.out -o cover.html
-
-      - name: Upload Coverage
-        uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
