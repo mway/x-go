@@ -32,19 +32,20 @@ import (
 func TestError(t *testing.T) {
 	t.Run("panic", func(t *testing.T) {
 		want := fmt.Sprintf(
-			"must: condition failed: must.Error[%T]() given a non-nil error: %s",
+			"must: condition failed: must.NoError[%T]: "+
+				"received a non-nil error: %s",
 			0,
 			t.Name(),
 		)
 		require.PanicsWithError(t, want, func() {
-			must.Error(0, errors.New(t.Name()))
+			must.NoError(0, errors.New(t.Name()))
 		})
 	})
 
 	t.Run("no panic", func(t *testing.T) {
 		want := 123
 		require.NotPanics(t, func() {
-			require.Equal(t, want, must.Error(want, nil))
+			require.Equal(t, want, must.NoError(want, nil))
 		})
 	})
 }
@@ -52,17 +53,17 @@ func TestError(t *testing.T) {
 func TestBool(t *testing.T) {
 	t.Run("panic", func(t *testing.T) {
 		want := fmt.Sprintf(
-			"must: condition failed: must.Bool[%T]() given a false boolean value",
+			"must: condition failed: must.True[%T]: received a false value",
 			0,
 		)
 		require.PanicsWithError(t, want, func() {
-			must.Bool(0, false)
+			must.True(0, false)
 		})
 	})
 
 	t.Run("no panic", func(t *testing.T) {
 		require.NotPanics(t, func() {
-			require.Equal(t, 123, must.Bool(123, true))
+			require.Equal(t, 123, must.True(123, true))
 		})
 	})
 }
@@ -70,7 +71,7 @@ func TestBool(t *testing.T) {
 func TestPredicate(t *testing.T) {
 	t.Run("panic", func(t *testing.T) {
 		want := fmt.Sprintf(
-			"must: condition failed: must.Bool[%T]() given a false boolean value",
+			"must: condition failed: must.True[%T]: received a false value",
 			0,
 		)
 		require.PanicsWithError(t, want, func() {
@@ -92,7 +93,7 @@ func TestPredicate(t *testing.T) {
 func TestMustFunc(t *testing.T) {
 	t.Run("panic error", func(t *testing.T) {
 		want := fmt.Sprintf(
-			"must: condition failed: must.Error[%T]() given a non-nil error: %s",
+			"must: condition failed: must.NoError[%T]: received a non-nil error: %s",
 			0,
 			t.Name(),
 		)
@@ -105,7 +106,7 @@ func TestMustFunc(t *testing.T) {
 
 	t.Run("panic bool", func(t *testing.T) {
 		want := fmt.Sprintf(
-			"must: condition failed: must.Bool[%T]() given a false boolean value",
+			"must: condition failed: must.True[%T]: received a false value",
 			0,
 		)
 		require.PanicsWithError(t, want, func() {
@@ -172,7 +173,7 @@ func TestAny(t *testing.T) {
 func TestDo(t *testing.T) {
 	t.Run("panic", func(t *testing.T) {
 		want := fmt.Sprintf(
-			"must: condition failed: must.Do() received a non-nil error: %s",
+			"must: condition failed: must.Do: received a non-nil error: %s",
 			t.Name(),
 		)
 		require.PanicsWithError(t, want, func() {
@@ -194,7 +195,8 @@ func TestDo(t *testing.T) {
 func TestClose(t *testing.T) {
 	t.Run("panic", func(t *testing.T) {
 		want := fmt.Sprintf(
-			"must: condition failed: must.Close() received a non-nil error when closing: %s",
+			"must: condition failed: must.Close: "+
+				"received a non-nil error when closing: %s",
 			t.Name(),
 		)
 		require.PanicsWithError(t, want, func() {
@@ -205,6 +207,22 @@ func TestClose(t *testing.T) {
 	t.Run("no panic", func(t *testing.T) {
 		require.NotPanics(t, func() {
 			must.Close(newTestCloser(nil))
+		})
+	})
+}
+
+func TestAs(t *testing.T) {
+	t.Run("panic", func(t *testing.T) {
+		const want = "must: condition failed: must.As: " +
+			"cannot convert from bool to int"
+		require.PanicsWithError(t, want, func() {
+			must.As[int](true)
+		})
+	})
+
+	t.Run("no panic", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			require.Equal(t, t.Name(), must.As[string](any(t.Name())))
 		})
 	})
 }
