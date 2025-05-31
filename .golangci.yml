@@ -19,12 +19,15 @@ linters:
     - errcheck
     - exhaustive
     - forbidigo
+    - goconst
     - gocritic
+    - gocyclo
     # - gosec  # TODO(mway): Enable
     - govet
     - importas
     - ineffassign
     # - intrange  # TODO(mway): Enable
+    - lll
     - misspell
     - nilerr
     - nilnesserr
@@ -106,7 +109,7 @@ linters:
     govet:
       enable-all: true
     lll:
-      line-length: 100
+      line-length: 79
     misspell:
       locale: US
   exclusions:

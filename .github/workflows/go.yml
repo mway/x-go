@@ -21,10 +21,8 @@ jobs:
           - go: stable
             golangci: v2.1
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
       - name: Build
@@ -32,23 +30,15 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go: [stable, oldstable]
-        include:
-          - go: stable
-            golangci: v2.1
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
         with:
-          go-version: ${{ matrix.go }}
+          experimental: true
       - name: Test
-        run: go test -v -race -coverprofile cover.out ./...
+        run: mise run test
       - name: Prepare Coverage
-        run: go tool cover -html cover.out -o cover.html
+        run: mise run cover
       - name: Upload Coverage
         uses: codecov/codecov-action@v4
         env:
@@ -56,21 +46,10 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go: [stable]
-        include:
-          - go: stable
-            golangci: v2.1
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
         with:
-          go-version: ${{ matrix.go }}
+          experimental: true
       - name: Lint
-        uses: golangci/golangci-lint-action@v8
-        if: matrix.golangci
-        with:
-          version: ${{ matrix.golangci }}
+        run: mise run check
