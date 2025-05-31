@@ -22,7 +22,8 @@
 package set
 
 import (
-	"golang.org/x/exp/maps"
+	"maps"
+	"slices"
 )
 
 // A Set is a collection of unique values of type T.
@@ -196,7 +197,7 @@ func (s Set[T]) ToSlice() []T {
 	if len(s.data) == 0 {
 		return nil
 	}
-	return maps.Keys(s.data)
+	return slices.Collect(maps.Keys(s.data))
 }
 
 // Union returns a [Set[T]] containing the union between s and other.
