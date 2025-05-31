@@ -1,15 +1,37 @@
 #!/usr/bin/env just --justfile
 
-set shell := ["bash", "-c"]
+coverprofile := "cover.out"
 
-test PKG="./..." *ARGS="":
-    gotestsum -- -race -count 1 -coverprofile cover.out {{ ARGS }} {{ PKG }}
+default:
+    @just --list | grep -v default
+
+check:
+    mise run check
+
+cover: test
+    mise run cover
+
+fix:
+    mise run fix
+
+test:
+    mise run test
 
 vtest PKG="./..." *ARGS="":
-    gotestsum -f testname -- -race -count 1 -coverprofile cover.out {{ ARGS }} {{ PKG }}
+    go test -race -failfast -count 1 -coverprofile {{ coverprofile }} -v {{ PKG }} {{ ARGS }}
 
-bench PKG="./..." *ARGS="":
-    go test -v -count 1 {{ PKG }} -run "no tests" -bench . {{ ARGS }}
+tests PKG="./..." *ARGS="":
+    gotestsum -f dots -- -v -race -failfast -count 1 -coverprofile {{ coverprofile }} {{ PKG }} {{ ARGS }}
 
-lint PKG="./..." *ARGS="--new=false --fix":
-    golangci-lint run {{ PKG }} {{ ARGS }}
+alias bench := benchmark
+
+benchmark PKG="./..." *ARGS="":
+    go test -v -count 1 -run x -bench . {{ PKG }} {{ ARGS }}
+
+lint *PKGS="./...":
+    golangci-lint run --new=false {{ PKGS }}
+
+alias gen := generate
+    
+generate PKG="./...":
+    go generate {{ PKG }}
