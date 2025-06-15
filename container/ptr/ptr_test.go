@@ -44,16 +44,16 @@ func TestLoadOr(t *testing.T) {
 	require.Equal(t, 456, ptr.LoadOr(ptr.To(456), 123))
 }
 
-func TestLoadOrFunc(t *testing.T) {
+func TestLoadOrElse(t *testing.T) {
 	require.Equal(
 		t,
 		123,
-		ptr.LoadOrFunc((*int)(nil), func() int { return 123 }),
+		ptr.LoadOrElse((*int)(nil), func() int { return 123 }),
 	)
 	require.Equal(
 		t,
 		456,
-		ptr.LoadOrFunc(ptr.To(456), func() int { return 123 }),
+		ptr.LoadOrElse(ptr.To(456), func() int { return 123 }),
 	)
 }
 
@@ -126,12 +126,12 @@ func TestPointer_Load(t *testing.T) {
 	var p ptr.Pointer[int]
 	require.Equal(t, 0, p.Load())
 	require.Equal(t, 123, p.LoadOr(123))
-	require.Equal(t, 123, p.LoadOrFunc(func() int { return 123 }))
+	require.Equal(t, 123, p.LoadOrElse(func() int { return 123 }))
 
 	p = ptr.New(456)
 	require.Equal(t, 456, p.Load())
 	require.Equal(t, 456, p.LoadOr(123))
-	require.Equal(t, 456, p.LoadOrFunc(func() int { return 123 }))
+	require.Equal(t, 456, p.LoadOrElse(func() int { return 123 }))
 }
 
 func TestPointer_Move(t *testing.T) {
@@ -213,7 +213,7 @@ func BenchmarkPointer_LoadOr(b *testing.B) {
 	})
 }
 
-func BenchmarkPointer_LoadOrFunc(b *testing.B) {
+func BenchmarkPointer_LoadOrElse(b *testing.B) {
 	b.Run("ptr", func(b *testing.B) {
 		p := ptr.New(123)
 		b.ReportAllocs()
@@ -221,7 +221,7 @@ func BenchmarkPointer_LoadOrFunc(b *testing.B) {
 
 		var x int
 		for i := 0; i < b.N; i++ {
-			x = p.LoadOrFunc(func() int { return b.N })
+			x = p.LoadOrElse(func() int { return b.N })
 		}
 		_ = x
 	})

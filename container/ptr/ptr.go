@@ -41,9 +41,9 @@ func LoadOr[T any](x *T, fallback T) T {
 	return *x
 }
 
-// LoadOrFunc returns the dereferenced value of x. If x is nil, the value
+// LoadOrElse returns the dereferenced value of x. If x is nil, the value
 // returned by calling fn will be used.
-func LoadOrFunc[T any](x *T, fn func() T) T {
+func LoadOrElse[T any](x *T, fn func() T) T {
 	if x == nil {
 		return fn()
 	}
@@ -108,10 +108,10 @@ func (p Pointer[T]) LoadOr(fallback T) T {
 	return LoadOr(p.ptr, fallback)
 }
 
-// LoadOrFunc returns the dereferenced value of p. If p does not hold a value,
+// LoadOrElse returns the dereferenced value of p. If p does not hold a value,
 // the value returned by calling fn will be used.
-func (p Pointer[T]) LoadOrFunc(fn func() T) T {
-	return LoadOrFunc(p.ptr, fn)
+func (p Pointer[T]) LoadOrElse(fn func() T) T {
+	return LoadOrElse(p.ptr, fn)
 }
 
 // MaybeCall calls fn with the result of p.Load() if p currently holds a value.
@@ -196,3 +196,5 @@ func (p *Pointer[T]) StorePtrCopy(ptr *T) {
 	tmp := *ptr
 	p.StorePtr(&tmp)
 }
+
+// swap
