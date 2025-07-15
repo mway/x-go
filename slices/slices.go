@@ -27,7 +27,7 @@ import (
 )
 
 // HasPrefix evaluates if x contains prefix as its first len(prefix) elements.
-func HasPrefix[T comparable](x []T, prefix []T) bool {
+func HasPrefix[S ~[]T, T comparable](x S, prefix []T) bool {
 	plen := len(prefix)
 	if plen > len(x) {
 		return false
@@ -36,7 +36,7 @@ func HasPrefix[T comparable](x []T, prefix []T) bool {
 }
 
 // Filter returns a copy of x with any elements for which pred returns true.
-func Filter[T any, P ~func(T) bool](x []T, pred P) []T {
+func Filter[S ~[]T, T any, P ~func(T) bool](x S, pred P) []T {
 	if len(x) == 0 {
 		return nil
 	}
@@ -58,12 +58,15 @@ func Filter[T any, P ~func(T) bool](x []T, pred P) []T {
 
 // Transform returns a copy of x with all elements' values passed through the
 // given mapping function.
-func Transform[From any, To any, P ~func(From) To](x []From, mapper P) []To {
+func Transform[S ~[]In, In any, Out any, P ~func(In) Out](
+	x S,
+	mapper P,
+) []Out {
 	if len(x) == 0 || mapper == nil {
 		return nil
 	}
 
-	dst := make([]To, len(x))
+	dst := make([]Out, len(x))
 	for i := range x {
 		dst[i] = mapper(x[i])
 	}
@@ -73,22 +76,10 @@ func Transform[From any, To any, P ~func(From) To](x []From, mapper P) []To {
 
 // Iter returns an [iter.Seq[V]] that ranges over s.
 func Iter[T ~[]V, V any](s T) iter.Seq[V] {
-	return func(yield func(V) bool) {
-		for _, value := range s {
-			if !yield(value) {
-				return
-			}
-		}
-	}
+	return slices.Values(s)
 }
 
 // Iter2 returns an [iter.Seq[int, V]] that ranges over s.
 func Iter2[T ~[]V, V any](s T) iter.Seq2[int, V] {
-	return func(yield func(int, V) bool) {
-		for i, value := range s {
-			if !yield(i, value) {
-				return
-			}
-		}
-	}
+	return slices.All(s)
 }
