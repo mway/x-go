@@ -21,3 +21,16 @@ pkl = "latest"
 script = "mise install"
 [[hooks.enter]]
 script = "hk install"
+
+[tasks.build]
+run = "go build -v ./..."
+[tasks.test]
+run = "gotestsum -f dots -- -race -coverprofile cover.out -count 1 ./..."
+[tasks.vtest]
+run = "go test -v -race -coverprofile cover.out -count 1 ./..."
+[tasks.cover]
+run = "go tool cover -html cover.out -o cover.html"
+[tasks.check]
+run = "hk run check"
+[tasks.fix]
+run = "hk run fix"
