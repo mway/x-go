@@ -21,6 +21,7 @@
 package slices_test
 
 import (
+	"errors"
 	"maps"
 	goslices "slices"
 	"testing"
@@ -180,6 +181,87 @@ func TestTransform(t *testing.T) {
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, tt.want, slices.Transform(tt.give, tt.mapper))
+		})
+	}
+}
+
+func TestTransformError(t *testing.T) {
+	errTest := errors.New(t.Name())
+
+	//nolint:govet // fieldalignment
+	cases := map[string]struct {
+		give    []int
+		mapper  func(int) (int, error)
+		want    []int
+		wantErr error
+	}{
+		"nil": {
+			give: nil,
+			mapper: func(int) (int, error) {
+				return 0, errors.New("sadness")
+			},
+			want:    nil,
+			wantErr: nil,
+		},
+		"empty": {
+			give: []int{},
+			mapper: func(int) (int, error) {
+				return 0, errors.New("sadness")
+			},
+			want:    nil,
+			wantErr: nil,
+		},
+		"double": {
+			give: []int{1, 2, 3},
+			mapper: func(x int) (int, error) {
+				return x * 2, nil
+			},
+			want:    []int{2, 4, 6},
+			wantErr: nil,
+		},
+		"error first": {
+			give: []int{1, 2, 3},
+			mapper: func(x int) (int, error) {
+				if x == 1 {
+					return 0, errTest
+				}
+				return x, nil
+			},
+			want:    nil,
+			wantErr: errTest,
+		},
+		"error mid": {
+			give: []int{1, 2, 3},
+			mapper: func(x int) (int, error) {
+				if x == 2 {
+					return 0, errTest
+				}
+				return x, nil
+			},
+			want:    nil,
+			wantErr: errTest,
+		},
+		"error last": {
+			give: []int{1, 2, 3},
+			mapper: func(x int) (int, error) {
+				if x == 3 {
+					return 0, errTest
+				}
+				return x, nil
+			},
+			want:    nil,
+			wantErr: errTest,
+		},
+	}
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			have, haveErr := slices.TransformError(tt.give, tt.mapper)
+			if tt.wantErr == nil {
+				require.NoError(t, haveErr)
+			} else {
+				require.ErrorIs(t, haveErr, tt.wantErr)
+			}
+			require.Equal(t, tt.want, have)
 		})
 	}
 }
