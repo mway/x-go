@@ -74,6 +74,31 @@ func Transform[S ~[]In, In any, Out any, P ~func(In) Out](
 	return dst
 }
 
+// TransformError returns a copy of x with all elements' values passed through
+// the given mapping function. If an error is encountered, iteration halts, any
+// transformed items are discarded, and the error is immediately returned to
+// the caller.
+func TransformError[S ~[]In, In any, Out any, P ~func(In) (Out, error)](
+	x S,
+	mapper P,
+) ([]Out, error) {
+	if len(x) == 0 || mapper == nil {
+		return nil, nil
+	}
+
+	var (
+		dst = make([]Out, len(x))
+		err error
+	)
+	for i := range x {
+		if dst[i], err = mapper(x[i]); err != nil {
+			return nil, err
+		}
+	}
+
+	return dst, nil
+}
+
 // Iter returns an [iter.Seq[V]] that ranges over s.
 func Iter[T ~[]V, V any](s T) iter.Seq[V] {
 	return slices.Values(s)
