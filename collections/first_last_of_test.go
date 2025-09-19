@@ -273,8 +273,16 @@ func TestFirstOfOr(t *testing.T) {
 					toFuncs(tt.give)...,
 				))
 			} else {
-				require.Equal(t, tt.wantValue, collections.FirstOfOrElse(nil, tt.give...))
-				require.Equal(t, tt.wantValue, collections.FirstOfSeqOrElse(nil, slices.Iter(tt.give)))
+				require.Equal(
+					t,
+					tt.wantValue,
+					collections.FirstOfOrElse(nil, tt.give...),
+				)
+				require.Equal(
+					t,
+					tt.wantValue,
+					collections.FirstOfSeqOrElse(nil, slices.Iter(tt.give)),
+				)
 				haveIndex, haveValue = collections.FirstOfSeq2OrElse(
 					nil,
 					slices.Iter2(tt.give),
@@ -491,8 +499,16 @@ func TestLastOfOr(t *testing.T) {
 					toFuncs(tt.give)...,
 				))
 			} else {
-				require.Equal(t, tt.wantValue, collections.LastOfOrElse(nil, tt.give...))
-				require.Equal(t, tt.wantValue, collections.LastOfSeqOrElse(nil, slices.Iter(tt.give)))
+				require.Equal(
+					t,
+					tt.wantValue,
+					collections.LastOfOrElse(nil, tt.give...),
+				)
+				require.Equal(
+					t,
+					tt.wantValue,
+					collections.LastOfSeqOrElse(nil, slices.Iter(tt.give)),
+				)
 				haveIndex, haveValue = collections.LastOfSeq2OrElse(
 					nil,
 					slices.Iter2(tt.give),

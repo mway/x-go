@@ -22,12 +22,12 @@
 package tree
 
 import (
+	"cmp"
 	"errors"
 	"maps"
 	"slices"
 	"sort"
 
-	"golang.org/x/exp/constraints"
 	xmaps "golang.org/x/exp/maps"
 )
 
@@ -37,10 +37,10 @@ import (
 var ErrSkipSubtree = errors.New("skip subtree")
 
 // A NodeWalker is a function that controls how nodes are walked.
-type NodeWalker[K constraints.Ordered, V comparable] func(node *BasicNode[K, V]) error
+type NodeWalker[K cmp.Ordered, V comparable] func(node *BasicNode[K, V]) error
 
 // BasicNode is a basic, arbitrarily-ordered, non-balancing, key/value tree.
-type BasicNode[K constraints.Ordered, V comparable] struct {
+type BasicNode[K cmp.Ordered, V comparable] struct {
 	key      K
 	value    V
 	parent   *BasicNode[K, V]
@@ -48,7 +48,7 @@ type BasicNode[K constraints.Ordered, V comparable] struct {
 }
 
 // NewBasicNode creates a new [BasicNode].
-func NewBasicNode[K constraints.Ordered, V comparable](
+func NewBasicNode[K cmp.Ordered, V comparable](
 	key K,
 	value V,
 ) *BasicNode[K, V] {

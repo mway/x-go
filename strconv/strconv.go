@@ -117,13 +117,15 @@ func ParseInt[T constraints.Signed](str string) (T, error) {
 	return T(x), err
 }
 
-// ParseUint attempts to parse str into a T, returning any error(s) encountered.
+// ParseUint attempts to parse str into a T, returning any error(s)
+// encountered.
 func ParseUint[T constraints.Unsigned](str string) (T, error) {
 	x, err := strconv.ParseUint(strings.TrimSpace(str), 10, bitsize[T]())
 	return T(x), err
 }
 
-// ParseFloat attempts to parse str into a T, returning any error(s) encountered.
+// ParseFloat attempts to parse str into a T, returning any error(s)
+// encountered.
 func ParseFloat[T constraints.Float](str string) (T, error) {
 	x, err := strconv.ParseFloat(strings.TrimSpace(str), bitsize[T]())
 	return T(x), err

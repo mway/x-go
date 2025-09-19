@@ -53,7 +53,12 @@ func TestListenRandom(t *testing.T) {
 				expectError: errListenSentinel,
 			},
 		}
-		validate = func(t *testing.T, expect error, l net.Listener, err error) {
+		validate = func(
+			t *testing.T,
+			expect error,
+			l net.Listener,
+			err error,
+		) {
 			require.ErrorIs(t, err, expect)
 
 			if expect == nil {
@@ -107,6 +112,9 @@ func withListen(listen listenFunc, fn func()) {
 
 type nopListener struct{}
 
-func (nopListener) Accept() (net.Conn, error) { return nil, nil } //nolint:nilnil
-func (nopListener) Close() error              { return nil }
-func (nopListener) Addr() net.Addr            { return nil }
+func (nopListener) Accept() (net.Conn, error) {
+	//nolint:nilnil
+	return nil, nil
+}
+func (nopListener) Close() error   { return nil }
+func (nopListener) Addr() net.Addr { return nil }
