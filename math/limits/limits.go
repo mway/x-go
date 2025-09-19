@@ -18,7 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE THE SOFTWARE.
 
-// Package limits provides helpers for dynamically determining numeric type limits.
+// Package limits provides helpers for dynamically determining numeric type
+// limits.
 package limits
 
 import (

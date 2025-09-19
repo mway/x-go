@@ -22,22 +22,20 @@
 package heap
 
 import (
+	"cmp"
 	"slices"
-
-	"golang.org/x/exp/constraints"
 )
 
 // n.b. Most of this functionality was ported (essentially verbatim) from the
-//      Go standard library for parity:
-//      https://cs.opensource.google/go/go/+/refs/tags/go1.23.5:src/container/heap/heap.go
+//      Go standard library for parity.
 
 // MinHeap is a min heap (P<=C).
-type MinHeap[T constraints.Ordered] struct {
+type MinHeap[T cmp.Ordered] struct {
 	heap[T, heapTypeMin]
 }
 
 // NewMinHeap creates a new [MinHeap] with the given initial values.
-func NewMinHeap[T constraints.Ordered](values ...T) *MinHeap[T] {
+func NewMinHeap[T cmp.Ordered](values ...T) *MinHeap[T] {
 	return &MinHeap[T]{
 		heap: newHeap[T, heapTypeMin](values...),
 	}
@@ -49,12 +47,12 @@ func (h *MinHeap[T]) Min() T {
 }
 
 // MaxHeap is a max heap (P>=C).
-type MaxHeap[T constraints.Ordered] struct {
+type MaxHeap[T cmp.Ordered] struct {
 	heap[T, heapTypeMax]
 }
 
 // NewMaxHeap creates a new [MaxHeap] with the given initial values.
-func NewMaxHeap[T constraints.Ordered](values ...T) *MaxHeap[T] {
+func NewMaxHeap[T cmp.Ordered](values ...T) *MaxHeap[T] {
 	return &MaxHeap[T]{
 		heap: newHeap[T, heapTypeMax](values...),
 	}
@@ -76,11 +74,11 @@ type heapType interface {
 	heapTypeMin | heapTypeMax
 }
 
-type heap[T constraints.Ordered, H heapType] struct {
+type heap[T cmp.Ordered, H heapType] struct {
 	data []T
 }
 
-func newHeap[T constraints.Ordered, H heapType](values ...T) heap[T, H] {
+func newHeap[T cmp.Ordered, H heapType](values ...T) heap[T, H] {
 	h := heap[T, H]{
 		data: slices.Clone(values),
 	}

@@ -37,7 +37,7 @@ func RequireSend[T any](
 	value T,
 	timeout time.Duration,
 ) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(t.Context(), timeout)
 	defer cancel()
 	require.True(t, channels.Send(ctx, ch, value))
 }
@@ -49,19 +49,19 @@ func RequireNoSend[T any](
 	value T,
 	timeout time.Duration,
 ) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(t.Context(), timeout)
 	defer cancel()
 	require.False(t, channels.Send(ctx, ch, value))
 }
 
-// RequireRecv fails t if it receives from ch within timeout. Otherwise, it
-// returns the received value.
+// RequireRecv fails t if it does not receive from ch within timeout.
+// Otherwise, it returns the received value.
 func RequireRecv[T any](
 	t testing.T,
 	ch <-chan T,
 	timeout time.Duration,
 ) T {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(t.Context(), timeout)
 	defer cancel()
 	value, ok := channels.Recv(ctx, ch)
 	require.True(t, ok)
@@ -74,8 +74,35 @@ func RequireNoRecv[T any](
 	ch <-chan T,
 	timeout time.Duration,
 ) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(t.Context(), timeout)
 	defer cancel()
 	_, ok := channels.Recv(ctx, ch)
 	require.False(t, ok)
+}
+
+// RequireRecvOrClose fails t if either (a) it does not receive from ch or (b)
+// ch is not closed within timeout.
+func RequireRecvOrClose[T any](
+	t testing.T,
+	ch <-chan T,
+	timeout time.Duration,
+) (T, bool) {
+	ctx, cancel := context.WithTimeout(t.Context(), timeout)
+	defer cancel()
+	value, ok := channels.Recv(ctx, ch)
+	require.True(t, ok || ctx.Err() == nil)
+	return value, ok
+}
+
+// RequireNoRecvOrClose fails t if either (a) it receives from ch or (b) ch is
+// closed within timeout.
+func RequireNoRecvOrClose[T any](
+	t testing.T,
+	ch <-chan T,
+	timeout time.Duration,
+) {
+	ctx, cancel := context.WithTimeout(t.Context(), timeout)
+	defer cancel()
+	_, ok := channels.Recv(ctx, ch)
+	require.True(t, !ok && ctx.Err() != nil)
 }

@@ -10,6 +10,7 @@
 package testingmock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -37,6 +38,20 @@ func NewMockT(ctrl *gomock.Controller) *MockT {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockT) EXPECT() *MockTMockRecorder {
 	return m.recorder
+}
+
+// Context mocks base method.
+func (m *MockT) Context() context.Context {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Context")
+	ret0, _ := ret[0].(context.Context)
+	return ret0
+}
+
+// Context indicates an expected call of Context.
+func (mr *MockTMockRecorder) Context() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Context", reflect.TypeOf((*MockT)(nil).Context))
 }
 
 // Errorf mocks base method.

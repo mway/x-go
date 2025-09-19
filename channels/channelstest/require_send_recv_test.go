@@ -34,12 +34,14 @@ func TestRequireSend(t *testing.T) {
 	defer safeClose(t, ch)
 
 	mockT := testingmock.NewMockT(gomock.NewController(t))
+	mockT.EXPECT().Context().Return(t.Context()).Times(cap(ch))
 	for range cap(ch) {
 		channelstest.RequireSend(mockT, ch, struct{}{}, 100*time.Millisecond)
 	}
 
 	mockT.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 	mockT.EXPECT().FailNow().Times(1)
+	mockT.EXPECT().Context().Return(t.Context())
 	channelstest.RequireSend(mockT, ch, struct{}{}, 100*time.Millisecond)
 }
 
@@ -48,6 +50,7 @@ func TestRequireNoSend(t *testing.T) {
 	defer safeClose(t, ch)
 
 	mockT := testingmock.NewMockT(gomock.NewController(t))
+	mockT.EXPECT().Context().Return(t.Context()).Times(3)
 	for range 3 {
 		channelstest.RequireNoSend(mockT, ch, struct{}{}, 100*time.Millisecond)
 	}
@@ -60,6 +63,7 @@ func TestRequireNoSend(t *testing.T) {
 
 	mockT.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 	mockT.EXPECT().FailNow().Times(1)
+	mockT.EXPECT().Context().Return(t.Context()).Times(1)
 	channelstest.RequireNoSend(mockT, ch, struct{}{}, 100*time.Millisecond)
 	<-done
 }
@@ -70,10 +74,12 @@ func TestRequireRecv(t *testing.T) {
 
 	ch <- struct{}{}
 	mockT := testingmock.NewMockT(gomock.NewController(t))
+	mockT.EXPECT().Context().Return(t.Context())
 	channelstest.RequireRecv(mockT, ch, 100*time.Millisecond)
 
 	mockT.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 	mockT.EXPECT().FailNow().Times(1)
+	mockT.EXPECT().Context().Return(t.Context())
 	channelstest.RequireRecv(mockT, ch, 100*time.Millisecond)
 }
 
@@ -82,6 +88,7 @@ func TestRequireNoRecv(t *testing.T) {
 	defer safeClose(t, ch)
 
 	mockT := testingmock.NewMockT(gomock.NewController(t))
+	mockT.EXPECT().Context().Return(t.Context())
 	channelstest.RequireNoRecv(mockT, ch, 100*time.Millisecond)
 
 	done := make(chan struct{})
@@ -93,7 +100,46 @@ func TestRequireNoRecv(t *testing.T) {
 
 	mockT.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 	mockT.EXPECT().FailNow().Times(1)
+	mockT.EXPECT().Context().Return(t.Context())
 	channelstest.RequireNoRecv(mockT, ch, 100*time.Millisecond)
+
+	<-done
+}
+
+func TestRequireRecvOrClose(t *testing.T) {
+	ch := make(chan struct{}, 1)
+	defer safeClose(t, ch)
+
+	ch <- struct{}{}
+	mockT := testingmock.NewMockT(gomock.NewController(t))
+	mockT.EXPECT().Context().Return(t.Context())
+	channelstest.RequireRecvOrClose(mockT, ch, 100*time.Millisecond)
+
+	mockT.EXPECT().Context().Return(t.Context())
+	mockT.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
+	mockT.EXPECT().FailNow().Times(1)
+	channelstest.RequireRecvOrClose(mockT, ch, 100*time.Millisecond)
+}
+
+func TestRequireNoRecvOrClose(t *testing.T) {
+	ch := make(chan struct{})
+	defer safeClose(t, ch)
+
+	mockT := testingmock.NewMockT(gomock.NewController(t))
+	mockT.EXPECT().Context().Return(t.Context())
+	channelstest.RequireNoRecvOrClose(mockT, ch, 100*time.Millisecond)
+
+	done := make(chan struct{})
+	defer wait(done)
+	go func() {
+		defer close(done)
+		ch <- struct{}{}
+	}()
+
+	mockT.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
+	mockT.EXPECT().FailNow().Times(1)
+	mockT.EXPECT().Context().Return(t.Context())
+	channelstest.RequireNoRecvOrClose(mockT, ch, 100*time.Millisecond)
 
 	<-done
 }

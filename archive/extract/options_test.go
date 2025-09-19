@@ -30,7 +30,11 @@ import (
 )
 
 func TestOptions(t *testing.T) {
-	requireEqualOptions := func(t *testing.T, want extract.Options, have extract.Options) {
+	requireEqualOptions := func(
+		t *testing.T,
+		want extract.Options,
+		have extract.Options,
+	) {
 		t.Helper()
 		require.Equal(t, have.Callback == nil, want.Callback == nil)
 		require.Equal(t, want.Output, have.Output)

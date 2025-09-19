@@ -22,6 +22,7 @@
 package testing
 
 import (
+	"context"
 	"testing"
 )
 
@@ -35,4 +36,6 @@ type T interface {
 	Errorf(string, ...any)
 	// FailNow is analogous to [testing.T.FailNow].
 	FailNow()
+	// Context is analogous to [testing.T.Context].
+	Context() context.Context
 }

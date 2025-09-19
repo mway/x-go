@@ -11,6 +11,9 @@ check:
 cover: test
     mise run cover
 
+cover-html: cover
+    open cover.html
+
 fix:
     mise run fix
 
