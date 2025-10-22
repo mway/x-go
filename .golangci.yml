@@ -128,16 +128,21 @@ issues:
   new: true
 formatters:
   enable:
+    - gci
     - golines
     - gofumpt
   settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - localmodule
     golines:
       max-len: 79
       tab-len: 4
       reformat-tags: false
+      shorten-comments: false
       chain-split-dots: true
-    gofumpt:
-      module-path: go.mway.dev/chrono
   exclusions:
     generated: lax
     paths:

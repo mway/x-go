@@ -110,7 +110,7 @@ func (b *Buffer) Add(lines ...string) (discarded int) {
 	}
 
 	if len(lines) == 0 {
-		return
+		return discarded
 	}
 
 	b.mu.Lock()

@@ -28,6 +28,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"go.mway.dev/x/os"
 	"go.mway.dev/x/os/tempdir"
 )
@@ -44,7 +45,7 @@ func TestWithFileReader(t *testing.T) {
 				t.Name(),
 				func(r io.Reader) (err error) {
 					haveContent, err = io.ReadAll(r)
-					return
+					return err
 				},
 			),
 		)
@@ -62,7 +63,7 @@ func TestWithFileReader_NotExist(t *testing.T) {
 				t.Name(),
 				func(r io.Reader) (err error) {
 					haveContent, err = io.ReadAll(r)
-					return
+					return err
 				},
 			),
 			goos.ErrNotExist,

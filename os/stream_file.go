@@ -35,7 +35,7 @@ const _createFileFlags = os.O_CREATE | os.O_TRUNC | os.O_WRONLY
 func WithFileReader(path string, fn func(r io.Reader) error) (err error) {
 	var src io.ReadCloser
 	if src, err = os.Open(path); err != nil { //nolint:gosec
-		return
+		return err
 	}
 	defer func() {
 		err = errors.Join(err, src.Close())
@@ -62,7 +62,7 @@ func WithFileModeWriter(
 ) (err error) {
 	var dst io.WriteCloser
 	if dst, err = os.OpenFile(path, _createFileFlags, mode); err != nil {
-		return
+		return err
 	}
 	defer func() {
 		err = errors.Join(err, dst.Close())

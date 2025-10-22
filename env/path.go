@@ -78,8 +78,8 @@ func (p Path) Prepend(paths ...string) (newpath Path, err error) {
 	tmp := Path{
 		v: p.v.Clone(),
 	}
-	if err = tmp.v.Set(buf.String()); err != nil {
-		return
+	if setErr := tmp.v.Set(buf.String()); setErr != nil {
+		return newpath, setErr
 	}
 	return tmp, nil
 }
@@ -132,8 +132,8 @@ func (p Path) Append(paths ...string) (newpath Path, err error) {
 	tmp := Path{
 		v: p.v.Clone(),
 	}
-	if err = tmp.v.Set(buf.String()); err != nil {
-		return
+	if setErr := tmp.v.Set(buf.String()); setErr != nil {
+		return newpath, setErr
 	}
 	return tmp, nil
 }

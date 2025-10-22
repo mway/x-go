@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
 	"go.mway.dev/x/future"
 )
 

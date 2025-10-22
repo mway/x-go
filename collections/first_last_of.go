@@ -67,7 +67,7 @@ func FirstOfSeq[T comparable](seq iter.Seq[T]) (value T) {
 		value = x
 		return value == zero
 	})
-	return
+	return value
 }
 
 // FirstOfSeqOr returns the first V in seq that is not a zero value of V, or
@@ -106,7 +106,7 @@ func FirstOfSeq2[K comparable, V comparable](
 		}
 		return true
 	})
-	return
+	return key, value
 }
 
 // FirstOfSeq2Or returns the first (K,V) in seq where V is not the zero value,
@@ -228,7 +228,7 @@ func LastOfSeq[T comparable](seq iter.Seq[T]) (value T) {
 		}
 		return true
 	})
-	return
+	return value
 }
 
 // LastOfSeqOr returns the last V in seq that is not a zero value of V, or
@@ -266,7 +266,7 @@ func LastOfSeq2[K comparable, V comparable](
 		}
 		return true
 	})
-	return
+	return key, value
 }
 
 // LastOfSeq2Or returns the last (K,V) in seq where V is not the zero value, or

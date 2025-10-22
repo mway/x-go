@@ -45,13 +45,13 @@ type CwdFuncConstraint interface {
 func WithCwd[T CwdFuncConstraint](dir string, fn T) (err error) {
 	var orig string
 	if orig, err = _getwd(); err != nil {
-		return
+		return err
 	}
 
 	// If we're not already in the target directory, change directories.
 	if dir != orig {
-		if err = _chdir(dir); err != nil {
-			return
+		if chdirErr := _chdir(dir); chdirErr != nil {
+			return chdirErr
 		}
 
 		defer func() {
@@ -66,5 +66,5 @@ func WithCwd[T CwdFuncConstraint](dir string, fn T) (err error) {
 		err = fn()
 	}
 
-	return
+	return err
 }

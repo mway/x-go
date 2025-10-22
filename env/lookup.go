@@ -103,7 +103,7 @@ func LookupAs[T Parsable](
 		}
 	}
 	if !found {
-		return
+		return value, found, err
 	}
 
 	switch any(value).(type) {

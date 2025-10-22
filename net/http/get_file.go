@@ -29,8 +29,9 @@ import (
 	"path/filepath"
 
 	"go.mway.dev/errors"
-	xos "go.mway.dev/x/os"
 	"golang.org/x/sys/unix"
+
+	xos "go.mway.dev/x/os"
 )
 
 var (
