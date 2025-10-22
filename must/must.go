@@ -33,6 +33,19 @@ import (
 // due to this package.
 var ErrConditionFailed = errors.New("must: condition failed")
 
+// Get returns value if err is nil, or panics with err otherwise.
+func Get[T any](value T, err error) T {
+	if err != nil {
+		panic(fmt.Errorf(
+			"%w: must.Get[%T]: received a non-nil error: %w",
+			ErrConditionFailed,
+			value,
+			err,
+		))
+	}
+	return value
+}
+
 // NoError returns value if err is nil, or panics with err otherwise.
 func NoError[T any](value T, err error) T {
 	if err != nil {
@@ -51,6 +64,18 @@ func True[T any](value T, ok bool) T {
 	if !ok {
 		panic(fmt.Errorf(
 			"%w: must.True[%T]: received a false value",
+			ErrConditionFailed,
+			value,
+		))
+	}
+	return value
+}
+
+// False returns value if ok is false, or panics otherwise.
+func False[T any](value T, ok bool) T {
+	if ok {
+		panic(fmt.Errorf(
+			"%w: must.False[%T]: received a true value",
 			ErrConditionFailed,
 			value,
 		))
@@ -79,7 +104,7 @@ func Predicate[T any, P PredicateFunc[T]](value T, pred P) T {
 // returning the result.
 func Any[T any, P comparable](value T, pred P) T {
 	if err, ok := any(pred).(error); ok {
-		return NoError(value, err)
+		return Get(value, err)
 	}
 
 	switch x := any(pred).(type) {
@@ -109,7 +134,7 @@ func Func[T any, F MustFunc[T]](fn F) T {
 		fnBool  = func() (T, bool)
 	)
 	if fn, ok := any(fn).(fnError); ok {
-		return NoError(fn())
+		return Get(fn())
 	}
 	return True(any(fn).(fnBool)()) //nolint:errcheck
 }
