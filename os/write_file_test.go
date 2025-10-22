@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"go.mway.dev/x/os"
 )
 
@@ -240,7 +241,7 @@ func (e erroringReader) Read([]byte) (n int, err error) {
 	if err = e.err; err == nil {
 		err = io.EOF
 	}
-	return
+	return n, err
 }
 
 type erroringCloser struct {

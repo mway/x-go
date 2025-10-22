@@ -82,9 +82,9 @@ func SendWithTimeout[T any](
 func Recv[T any](ctx context.Context, ch <-chan T) (value T, ok bool) {
 	select {
 	case <-ctx.Done():
-		return
+		return value, ok
 	case value, ok = <-ch:
-		return
+		return value, ok
 	}
 }
 
@@ -101,10 +101,10 @@ func RecvWithTimeout[T any](
 
 	select {
 	case <-ctx.Done():
-		return
+		return value, ok
 	case <-timer.C:
-		return
+		return value, ok
 	case value, ok = <-ch:
-		return
+		return value, ok
 	}
 }

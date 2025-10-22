@@ -58,20 +58,20 @@ type Pointer[T any] struct {
 // New creates a new [Pointer[T, P]], allocating and storing the given value.
 func New[T any](value T) (p Pointer[T]) {
 	p.Store(value)
-	return
+	return p
 }
 
 // NewPtr creates a new [Pointer[T, P]], storing the given ptr.
 func NewPtr[T any](ptr *T) (p Pointer[T]) {
 	p.StorePtr(ptr)
-	return
+	return p
 }
 
 // NewPtrCopy creates a new [Pointer[T, P]], storing a shallow copy of the
 // given ptr.
 func NewPtrCopy[T any](ptr *T) (p Pointer[T]) {
 	p.StorePtrCopy(ptr)
-	return
+	return p
 }
 
 // Call is a convenience method that calls fn with the (p.Load(), p.Held()).

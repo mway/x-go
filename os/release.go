@@ -81,7 +81,7 @@ func loadRelease() (info ReleaseInfo) {
 		info.Version = unknown
 	}
 
-	return
+	return info
 }
 
 func parseOSRelease(dst *ReleaseInfo, raw []byte) {

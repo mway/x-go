@@ -61,7 +61,7 @@ func NewBasicNode[K cmp.Ordered, V comparable](
 // Key returns the node's key.
 func (n *BasicNode[K, V]) Key() (key K) {
 	if n == nil {
-		return
+		return key
 	}
 	return n.key
 }
@@ -91,7 +91,7 @@ func (n *BasicNode[K, V]) PathRev() []K {
 // Value returns the node's value.
 func (n *BasicNode[K, V]) Value() (value V) {
 	if n == nil {
-		return
+		return value
 	}
 	return n.value
 }
@@ -182,7 +182,7 @@ func (n *BasicNode[K, V]) Remove(
 		child.parent = nil
 		delete(n.children, key)
 	}
-	return
+	return child, removed
 }
 
 // Len returns the recursive length of the tree relative to the node.
@@ -197,7 +197,7 @@ func (n *BasicNode[K, V]) Len() (total int) {
 			total += child.Len()
 		}
 		total++ // for n itself
-		return
+		return total
 	}
 }
 

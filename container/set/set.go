@@ -70,7 +70,7 @@ func (s *Set[T]) AddN(values ...T) (added int) {
 			added++
 		}
 	}
-	return
+	return added
 }
 
 // AddSet adds each of the values in other to the set if they are not present,
@@ -82,7 +82,7 @@ func (s *Set[T]) AddSet(other Set[T]) (added int) {
 		}
 		return true
 	})
-	return
+	return added
 }
 
 // AddOrderedSet adds each of the values in other to the set if they are not
@@ -94,7 +94,7 @@ func (s *Set[T]) AddOrderedSet(other OrderedSet[T]) (added int) {
 		}
 		return true
 	})
-	return
+	return added
 }
 
 // Clear resets the set, removing all data.
@@ -132,7 +132,7 @@ func (s Set[T]) ForEach(fn Callback[T]) {
 // other.
 func (s Set[T]) Intersect(other Set[T]) (result Set[T]) {
 	if len(s.data) == 0 || len(other.data) == 0 {
-		return
+		return result
 	}
 
 	for k := range s.data {
@@ -152,7 +152,7 @@ func (s Set[T]) Intersect(other Set[T]) (result Set[T]) {
 // and other.
 func (s Set[T]) OrderedIntersect(other OrderedSet[T]) (result Set[T]) {
 	if len(s.data) == 0 || len(other.data) == 0 {
-		return
+		return result
 	}
 
 	for k := range s.data {
@@ -183,7 +183,7 @@ func (s Set[T]) Merge(other Set[T]) (result Set[T]) {
 		result.Add(k)
 	}
 
-	return
+	return result
 }
 
 // Len returns the number of values held in the set.
@@ -263,7 +263,7 @@ func (s Set[T]) OrderedUnion(other OrderedSet[T]) (result Set[T]) {
 		}
 	}
 
-	return
+	return result
 }
 
 func (s Set[T]) count(values []T) int {

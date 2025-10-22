@@ -24,9 +24,10 @@ import (
 	"testing"
 	"time"
 
+	"go.uber.org/mock/gomock"
+
 	"go.mway.dev/x/channels/channelstest"
 	"go.mway.dev/x/testing/testingmock"
-	"go.uber.org/mock/gomock"
 )
 
 func TestRequireSend(t *testing.T) {
