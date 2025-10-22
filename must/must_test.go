@@ -30,7 +30,28 @@ import (
 	"go.mway.dev/x/must"
 )
 
-func TestError(t *testing.T) {
+func TestGet(t *testing.T) {
+	t.Run("panic", func(t *testing.T) {
+		want := fmt.Sprintf(
+			"must: condition failed: must.Get[%T]: "+
+				"received a non-nil error: %s",
+			0,
+			t.Name(),
+		)
+		require.PanicsWithError(t, want, func() {
+			must.Get(0, errors.New(t.Name()))
+		})
+	})
+
+	t.Run("no panic", func(t *testing.T) {
+		want := 123
+		require.NotPanics(t, func() {
+			require.Equal(t, want, must.Get(want, nil))
+		})
+	})
+}
+
+func TestNoError(t *testing.T) {
 	t.Run("panic", func(t *testing.T) {
 		want := fmt.Sprintf(
 			"must: condition failed: must.NoError[%T]: "+
@@ -51,7 +72,7 @@ func TestError(t *testing.T) {
 	})
 }
 
-func TestBool(t *testing.T) {
+func TestTrue(t *testing.T) {
 	t.Run("panic", func(t *testing.T) {
 		want := fmt.Sprintf(
 			"must: condition failed: must.True[%T]: received a false value",
@@ -65,6 +86,24 @@ func TestBool(t *testing.T) {
 	t.Run("no panic", func(t *testing.T) {
 		require.NotPanics(t, func() {
 			require.Equal(t, 123, must.True(123, true))
+		})
+	})
+}
+
+func TestFalse(t *testing.T) {
+	t.Run("panic", func(t *testing.T) {
+		want := fmt.Sprintf(
+			"must: condition failed: must.False[%T]: received a true value",
+			0,
+		)
+		require.PanicsWithError(t, want, func() {
+			must.False(0, true)
+		})
+	})
+
+	t.Run("no panic", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			require.Equal(t, 123, must.False(123, false))
 		})
 	})
 }
@@ -94,7 +133,7 @@ func TestPredicate(t *testing.T) {
 func TestMustFunc(t *testing.T) {
 	t.Run("panic error", func(t *testing.T) {
 		want := fmt.Sprintf(
-			"must: condition failed: must.NoError[%T]: received a non-nil error: %s",
+			"must: condition failed: must.Get[%T]: received a non-nil error: %s",
 			0,
 			t.Name(),
 		)
