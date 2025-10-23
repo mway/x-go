@@ -50,6 +50,24 @@ func LoadOrElse[T any](x *T, fn func() T) T {
 	return *x
 }
 
+// If invokes fn with x if x is not nil.
+func If[T any](x *T, fn func(*T)) bool {
+	if x == nil {
+		return false
+	}
+	fn(x)
+	return true
+}
+
+// LoadIf invokes fn with the dereferenced value of x if x is not nil.
+func LoadIf[T any](x *T, fn func(T)) bool {
+	if x == nil {
+		return false
+	}
+	fn(*x)
+	return true
+}
+
 // A Pointer is a thin wrapper around a pointer to T.
 type Pointer[T any] struct {
 	ptr *T
