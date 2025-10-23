@@ -57,6 +57,37 @@ func TestLoadOrElse(t *testing.T) {
 	)
 }
 
+func TestIf(t *testing.T) {
+	var (
+		x     = ptr.To(t.Name())
+		calls int
+	)
+	require.True(t, ptr.If(x, func(strp *string) {
+		require.NotNil(t, strp)
+		require.Equal(t, t.Name(), *strp)
+		calls++
+	}))
+	require.Equal(t, 1, calls)
+	require.False(t, ptr.If(nil, func(*int) {
+		require.FailNow(t, "unexpected If callback call")
+	}))
+}
+
+func TestLoadIf(t *testing.T) {
+	var (
+		x     = ptr.To(t.Name())
+		calls int
+	)
+	require.True(t, ptr.LoadIf(x, func(str string) {
+		require.Equal(t, t.Name(), str)
+		calls++
+	}))
+	require.Equal(t, 1, calls)
+	require.False(t, ptr.LoadIf(nil, func(int) {
+		require.FailNow(t, "unexpected LoadIf callback call")
+	}))
+}
+
 func TestNew(t *testing.T) {
 	var p ptr.Pointer[int]
 	require.False(t, p.Held())
