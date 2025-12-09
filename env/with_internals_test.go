@@ -18,33 +18,45 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE THE SOFTWARE.
 
-package env_test
+package env
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"go.mway.dev/x/env"
+	"go.mway.dev/x/stub"
 )
 
-func TestSanitizeName(t *testing.T) {
-	// give -> want
-	cases := map[string]string{
-		"foo":     "FOO",
-		"foo_bar": "FOO_BAR",
-		"FOO_BAR": "FOO_BAR",
-		"foo bar": "FOO_BAR",
-		"foo$bar": "FOO_BAR",
-		"__fOo__": "__FOO__",
-		"  foo  ": "FOO",
-		"$$FOO!!": "__FOO__",
-		"0foo":    "_0FOO",
-		"foo0":    "FOO0",
-		"Foo":     "FOO",
-	}
+func TestWithError_VarError(t *testing.T) {
+	wantErr := errors.New("setenv error")
+	stub.With(&_osSetenv, osSetenvReturning(wantErr), func() {
+		haveErr := WithError(func() error {
+			return wantErr
+		}, "doesn't", "matter")
+		require.ErrorIs(t, haveErr, wantErr)
+	})
+}
 
-	for give, want := range cases {
-		require.Equal(t, want, env.SanitizeName(give))
-	}
+func TestWithoutError_VarError(t *testing.T) {
+	wantErr := errors.New("setenv error")
+	stub.With(&_osUnsetenv, osUnsetenvReturning(wantErr), func() {
+		haveErr := WithoutError(func() error {
+			return wantErr
+		}, "doesn't matter")
+		require.ErrorIs(t, haveErr, wantErr)
+	})
+}
+
+func TestWithAllError_VarError(t *testing.T) {
+	wantErr := errors.New("setenv error")
+	stub.With(&_osSetenv, osSetenvReturning(wantErr), func() {
+		haveErr := WithAllError(func() error {
+			return nil // unreached
+		}, map[string]string{
+			"var1": "value1",
+		})
+		require.ErrorIs(t, haveErr, wantErr)
+	})
 }

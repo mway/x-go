@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Matt Way
+// Copyright (c) 2025 Matt Way
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -31,23 +31,23 @@ import (
 )
 
 type (
-	OptionsFunc = func(*testing.T) []env.LookupOption
-	SetupFunc   = func(*testing.T) CleanupFunc
-	CleanupFunc = func()
+	optionsFunc = func(*testing.T) []env.LookupOption
+	setupFunc   = func(*testing.T) cleanupFunc
+	cleanupFunc = func()
 )
 
 var (
 	_noOptions = func(*testing.T) []env.LookupOption { return nil }
-	_noSetup   = func(*testing.T) CleanupFunc { return func() {} }
+	_noSetup   = func(*testing.T) cleanupFunc { return func() {} }
 )
 
 func TestGet(t *testing.T) {
 	cases := map[string]struct {
-		setup SetupFunc
-		opts  OptionsFunc
+		setup setupFunc
+		opts  optionsFunc
 	}{
 		"os.LookupEnv": {
-			setup: func(t *testing.T) CleanupFunc {
+			setup: func(t *testing.T) cleanupFunc {
 				return vars{
 					env.MustVar(
 						env.NewVarWithValue("TEST_VAR_1", t.Name()+"1"),
@@ -108,11 +108,11 @@ func TestGet_NotFound(t *testing.T) {
 
 func TestLookup(t *testing.T) {
 	cases := map[string]struct {
-		setup SetupFunc
-		opts  OptionsFunc
+		setup setupFunc
+		opts  optionsFunc
 	}{
 		"os.LookupEnv": {
-			setup: func(t *testing.T) CleanupFunc {
+			setup: func(t *testing.T) cleanupFunc {
 				return vars{
 					env.MustVar(
 						env.NewVarWithValue("TEST_VAR_1", t.Name()+"1"),
