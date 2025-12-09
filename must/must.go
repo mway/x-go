@@ -46,19 +46,6 @@ func Get[T any](value T, err error) T {
 	return value
 }
 
-// NoError returns value if err is nil, or panics with err otherwise.
-func NoError[T any](value T, err error) T {
-	if err != nil {
-		panic(fmt.Errorf(
-			"%w: must.NoError[%T]: received a non-nil error: %w",
-			ErrConditionFailed,
-			value,
-			err,
-		))
-	}
-	return value
-}
-
 // True returns value if ok is true, or panics otherwise.
 func True[T any](value T, ok bool) T {
 	if !ok {
@@ -155,6 +142,17 @@ func Close(closer io.Closer) {
 	if err := closer.Close(); err != nil {
 		panic(fmt.Errorf(
 			"%w: must.Close: received a non-nil error when closing: %w",
+			ErrConditionFailed,
+			err,
+		))
+	}
+}
+
+// NotError returns value if err is nil, or panics with err otherwise.
+func NotError(fn func() error) {
+	if err := fn(); err != nil {
+		panic(fmt.Errorf(
+			"%w: must.NotError: fn produced a non-nil error: %w",
 			ErrConditionFailed,
 			err,
 		))
