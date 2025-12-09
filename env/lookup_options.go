@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Matt Way
+// Copyright (c) 2025 Matt Way
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -40,7 +40,7 @@ func (f LookupFunc) apply(dst *lookupOptions) {
 	}
 }
 
-// SanitizeNames controls
+// SanitizeNames controls whether names are sanitized when looking up values.
 type SanitizeNames bool
 
 func (s SanitizeNames) apply(dst *lookupOptions) {
