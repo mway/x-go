@@ -51,27 +51,6 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestNoError(t *testing.T) {
-	t.Run("panic", func(t *testing.T) {
-		want := fmt.Sprintf(
-			"must: condition failed: must.NoError[%T]: "+
-				"received a non-nil error: %s",
-			0,
-			t.Name(),
-		)
-		require.PanicsWithError(t, want, func() {
-			must.NoError(0, errors.New(t.Name()))
-		})
-	})
-
-	t.Run("no panic", func(t *testing.T) {
-		want := 123
-		require.NotPanics(t, func() {
-			require.Equal(t, want, must.NoError(want, nil))
-		})
-	})
-}
-
 func TestTrue(t *testing.T) {
 	t.Run("panic", func(t *testing.T) {
 		want := fmt.Sprintf(
@@ -247,6 +226,25 @@ func TestClose(t *testing.T) {
 	t.Run("no panic", func(t *testing.T) {
 		require.NotPanics(t, func() {
 			must.Close(newTestCloser(nil))
+		})
+	})
+}
+
+func TestNotError(t *testing.T) {
+	t.Run("panic", func(t *testing.T) {
+		want := fmt.Sprintf(
+			"must: condition failed: must.NotError: "+
+				"fn produced a non-nil error: %s",
+			t.Name(),
+		)
+		require.PanicsWithError(t, want, func() {
+			must.NotError(newTestCloser(errors.New(t.Name())).Close)
+		})
+	})
+
+	t.Run("no panic", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			must.NotError(newTestCloser(nil).Close)
 		})
 	})
 }
