@@ -235,8 +235,8 @@ func TestIterIter2(t *testing.T) {
 				2: 2,
 				3: 3,
 			}
-			iter  = maps.Iter(want)
-			iter2 = maps.Iter2(want)
+			iter  = gomaps.Values(want)
+			iter2 = gomaps.All(want)
 		)
 
 		require.ElementsMatch(
@@ -254,8 +254,8 @@ func TestIterIter2(t *testing.T) {
 				2: 2,
 				3: 3,
 			}
-			iter       = maps.Iter(want)
-			iter2      = maps.Iter2(want)
+			iter       = gomaps.Values(want)
+			iter2      = gomaps.All(want)
 			haveValues []int
 			haveMap    = make(map[int]int)
 		)

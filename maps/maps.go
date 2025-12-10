@@ -21,10 +21,6 @@
 // Package maps provides slice-related utilities.
 package maps
 
-import (
-	"iter"
-)
-
 type (
 	// A PredicateFunc returns true or false based on the given parameter.
 	PredicateFunc[T any] = func(T) bool
@@ -131,28 +127,6 @@ func CountPtr[
 		}
 	}
 	return n
-}
-
-// Iter returns an [iter.Seq[V]] that ranges over s.
-func Iter[T ~map[K]V, K comparable, V any](s T) iter.Seq[V] {
-	return func(yield func(V) bool) {
-		for _, v := range s {
-			if !yield(v) {
-				return
-			}
-		}
-	}
-}
-
-// Iter2 returns an [iter.Seq2[K, V]] that ranges over s.
-func Iter2[T ~map[K]V, K comparable, V any](m T) iter.Seq2[K, V] {
-	return func(yield func(K, V) bool) {
-		for k, v := range m {
-			if !yield(k, v) {
-				return
-			}
-		}
-	}
 }
 
 // A DissociativeFunc outputs a single output from both a key and value.
