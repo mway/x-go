@@ -25,9 +25,28 @@ import (
 	"iter"
 )
 
+type (
+	// A PredicateFunc returns true or false based on the given parameter.
+	PredicateFunc[T any] = func(T) bool
+	// A KeyValuePredicateFunc returns true or false based on the given key
+	// and/or value parameter.
+	KeyValuePredicateFunc[K any, V any] = func(K, V) bool
+	// A KeyPredicateFunc returns true or false based on the given key
+	// parameter.
+	KeyPredicateFunc[K any] = func(K, struct{}) bool
+	// A ValuePredicateFunc returns true or false based on the given value
+	// parameter.
+	ValuePredicateFunc[V any] = func(struct{}, V) bool
+)
+
 // Predicate constrains the types of predicate functions supported by [Filter].
 type Predicate[K comparable, V any] interface {
-	~func(K, V) bool | ~func(K, struct{}) bool | ~func(struct{}, V) bool
+	~PredicateFunc[K] |
+		~PredicateFunc[V] |
+		~KeyValuePredicateFunc[K, V] |
+		~KeyPredicateFunc[K] |
+		~ValuePredicateFunc[V]
+	// ~func(K, V) bool | ~func(K, struct{}) bool | ~func(struct{}, V) bool
 }
 
 // ByKey returns fn as a [Predicate] in the form of func(K, struct{}).
@@ -82,6 +101,38 @@ func Transform[
 	return dst
 }
 
+// Count counts the number of elements in m for which fn returns true.
+func Count[
+	M ~map[K]V,
+	F KeyValuePredicateFunc[K, V],
+	K comparable,
+	V any,
+](m M, fn F) int {
+	var n int
+	for k, v := range m {
+		if fn(k, v) {
+			n++
+		}
+	}
+	return n
+}
+
+// CountPtr counts the number of elements in m for which fn returns true.
+func CountPtr[
+	M ~map[K]V,
+	F KeyValuePredicateFunc[K, *V],
+	K comparable,
+	V any,
+](m M, fn F) int {
+	var n int
+	for k, v := range m {
+		if fn(k, &v) {
+			n++
+		}
+	}
+	return n
+}
+
 // Iter returns an [iter.Seq[V]] that ranges over s.
 func Iter[T ~map[K]V, K comparable, V any](s T) iter.Seq[V] {
 	return func(yield func(V) bool) {
@@ -104,11 +155,41 @@ func Iter2[T ~map[K]V, K comparable, V any](m T) iter.Seq2[K, V] {
 	}
 }
 
+// A DissociativeFunc outputs a single output from both a key and value.
+type DissociativeFunc[InK comparable, InV any, Out any] = func(InK, InV) Out
+
+// Slice converts m into []Out according to fn.
+func Slice[
+	Out any,
+	M ~map[InK]InV,
+	F DissociativeFunc[InK, InV, Out],
+	InK comparable,
+	InV any,
+](m M, fn F) []Out {
+	if len(m) == 0 || fn == nil {
+		return nil
+	}
+
+	dst := make([]Out, 0, len(m))
+	for k, v := range m {
+		dst = append(dst, fn(k, v))
+	}
+	return dst
+}
+
 func wrap[K comparable, V any, P Predicate[K, V]](pred P) func(K, V) bool {
 	switch pred := any(pred).(type) {
-	case func(K, V) bool:
+	case PredicateFunc[K]:
+		return func(k K, _ V) bool {
+			return pred(k)
+		}
+	case PredicateFunc[V]:
+		return func(_ K, v V) bool {
+			return pred(v)
+		}
+	case KeyValuePredicateFunc[K, V]:
 		return pred
-	case func(K, struct{}) bool:
+	case KeyPredicateFunc[K]:
 		return func(k K, _ V) bool {
 			return pred(k, struct{}{})
 		}

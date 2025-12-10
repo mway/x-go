@@ -28,6 +28,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"go.mway.dev/x/container/ptr"
 	"go.mway.dev/x/container/set"
 	"go.mway.dev/x/slices"
 	"go.mway.dev/x/unsafe"
@@ -267,6 +268,44 @@ func TestTransformError(t *testing.T) {
 	}
 }
 
+func TestCountCountPtr(t *testing.T) {
+	var (
+		predAny     = func(int) bool { return true }
+		predPtrAny  = func(x *int) bool { return x != nil }
+		predEven    = func(x int) bool { return x > 0 && x%2 == 0 }
+		predPtrEven = func(x *int) bool {
+			return predEven(ptr.Load(x))
+		}
+	)
+
+	cases := map[string]struct {
+		pred    func(int) bool
+		predPtr func(*int) bool
+		give    []int
+		want    int
+	}{
+		"nominal": {
+			pred:    predAny,
+			predPtr: predPtrAny,
+			give:    []int{1, 2, 3, 4, 5},
+			want:    5,
+		},
+		"filtered": {
+			pred:    predEven,
+			predPtr: predPtrEven,
+			give:    []int{1, 2, 3, 4, 5},
+			want:    2,
+		},
+	}
+
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, tt.want, slices.Count(tt.give, tt.pred))
+			require.Equal(t, tt.want, slices.CountPtr(tt.give, tt.predPtr))
+		})
+	}
+}
+
 func TestIterIter2(t *testing.T) {
 	t.Run("sanity", func(t *testing.T) {
 		var (
@@ -308,4 +347,61 @@ func TestIterIter2(t *testing.T) {
 		})
 		require.Equal(t, map[int]int{0: 1}, haveMap)
 	})
+}
+
+func TestMap(t *testing.T) {
+	//nolint:govet
+	cases := map[string]struct {
+		conv func(int) (int, int)
+		give []int
+		want map[int]int
+	}{
+		"nominal": {
+			conv: func(v int) (int, int) {
+				return v, v
+			},
+			give: []int{1, 2, 3},
+			want: map[int]int{
+				1: 1,
+				2: 2,
+				3: 3,
+			},
+		},
+		"derivative": {
+			conv: func(v int) (int, int) {
+				return v - 1, v * 2
+			},
+			give: []int{1, 2, 3},
+			want: map[int]int{
+				0: 2,
+				1: 4,
+				2: 6,
+			},
+		},
+		"empty input": {
+			conv: func(v int) (int, int) {
+				return v - 1, v * 2
+			},
+			give: []int{},
+			want: nil,
+		},
+		"nil input": {
+			conv: func(v int) (int, int) {
+				return v - 1, v * 2
+			},
+			give: nil,
+			want: nil,
+		},
+		"nil func": {
+			conv: nil,
+			give: []int{1, 2, 3},
+			want: nil,
+		},
+	}
+
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, tt.want, slices.Map(tt.give, tt.conv))
+		})
+	}
 }

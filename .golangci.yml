@@ -118,6 +118,9 @@ linters:
       - linters:
           - lll
         source: '^//go:generate '
+      - linters:
+          - revive
+        text: "var-naming"
     paths:
       - third_party$
       - builtin$
