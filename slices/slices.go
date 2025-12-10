@@ -22,7 +22,6 @@
 package slices
 
 import (
-	"iter"
 	"slices"
 )
 
@@ -130,16 +129,6 @@ func CountPtr[S ~[]T, T any, P ~PredicateFunc[*T]](s S, pred P) int {
 		}
 	}
 	return n
-}
-
-// Iter returns an [iter.Seq[V]] that ranges over s.
-func Iter[S ~[]T, T any](s S) iter.Seq[T] {
-	return slices.Values(s)
-}
-
-// Iter2 returns an [iter.Seq[int, V]] that ranges over s.
-func Iter2[S ~[]T, T any](s S) iter.Seq2[int, T] {
-	return slices.All(s)
 }
 
 // An AssociativeFunc outputs both a key and value from a single input.
