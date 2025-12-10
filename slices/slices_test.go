@@ -310,8 +310,8 @@ func TestIterIter2(t *testing.T) {
 	t.Run("sanity", func(t *testing.T) {
 		var (
 			want  = []int{1, 2, 3}
-			iter  = slices.Iter(want)
-			iter2 = slices.Iter2(want)
+			iter  = goslices.Values(want)
+			iter2 = goslices.All(want)
 		)
 
 		require.Equal(t, want, goslices.Collect(iter))
@@ -329,8 +329,8 @@ func TestIterIter2(t *testing.T) {
 	t.Run("early return", func(t *testing.T) {
 		var (
 			want       = []int{1, 2, 3}
-			iter       = slices.Iter(want)
-			iter2      = slices.Iter2(want)
+			iter       = goslices.Values(want)
+			iter2      = goslices.All(want)
 			haveValues []int
 			haveMap    = make(map[int]int)
 		)
