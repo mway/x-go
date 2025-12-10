@@ -24,10 +24,12 @@ import (
 	gomaps "maps"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"go.mway.dev/x/container/ptr"
 	"go.mway.dev/x/maps"
 )
 
@@ -84,6 +86,24 @@ func TestFilter_DiscreteTypes(t *testing.T) {
 	require.Equal(t, map[int]string{
 		4: "four",
 	}, haveKeyMatchesWordLength)
+
+	haveEvensAgain := maps.Filter(src, func(k int) bool {
+		return k != 0 && k%2 == 0
+	})
+	require.Equal(t, map[int]string{
+		2: "two",
+		4: "four",
+	}, haveEvensAgain)
+
+	wordsWithEs := maps.Filter(src, func(v string) bool {
+		return strings.ContainsFunc(v, func(r rune) bool {
+			return r == 'e' || r == 'E'
+		})
+	})
+	require.Equal(t, map[int]string{
+		1: "one",
+		3: "three",
+	}, wordsWithEs)
 }
 
 func TestFilter_EqualTypes(t *testing.T) {
@@ -163,6 +183,50 @@ func TestTransform(t *testing.T) {
 	})
 }
 
+func TestCountCountPtr(t *testing.T) {
+	var (
+		predAny = func(uint, int) bool {
+			return true
+		}
+		predPtrAny = func(k uint, v *int) bool {
+			return k > 0 || v != nil
+		}
+		predEven = func(k uint, v int) bool {
+			return (k > 0 && k%2 == 0) || (v > 0 && v%2 == 0)
+		}
+		predPtrEven = func(k uint, v *int) bool {
+			return predEven(k, ptr.Load(v))
+		}
+	)
+
+	cases := map[string]struct {
+		give    map[uint]int
+		pred    func(uint, int) bool
+		predPtr func(uint, *int) bool
+		want    int
+	}{
+		"nominal": {
+			give:    map[uint]int{1: 1, 2: 2, 3: 3, 4: 4, 5: 5},
+			pred:    predAny,
+			predPtr: predPtrAny,
+			want:    5,
+		},
+		"filtered": {
+			give:    map[uint]int{1: 1, 2: 2, 3: 3, 4: 4, 5: 5},
+			pred:    predEven,
+			predPtr: predPtrEven,
+			want:    2,
+		},
+	}
+
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, tt.want, maps.Count(tt.give, tt.pred))
+			require.Equal(t, tt.want, maps.CountPtr(tt.give, tt.predPtr))
+		})
+	}
+}
+
 func TestIterIter2(t *testing.T) {
 	t.Run("sanity", func(t *testing.T) {
 		var (
@@ -213,4 +277,57 @@ func TestIterIter2(t *testing.T) {
 			require.Equal(t, want[k], v)
 		}
 	})
+}
+
+func TestSlice(t *testing.T) {
+	var (
+		hasEvenKeyOrValue = func(k uint, v int) bool {
+			return k%2 == 0 || v%2 == 0
+		}
+		hasAnyValue = func(_ uint, _ int) bool {
+			return true
+		}
+	)
+
+	cases := map[string]struct {
+		give map[uint]int
+		conv func(uint, int) bool
+		want []bool
+	}{
+		"nominal": {
+			give: map[uint]int{
+				1: 1,
+				2: 2,
+				3: 4,
+				5: 7,
+			},
+			conv: hasEvenKeyOrValue,
+			want: []bool{false, true, true, false},
+		},
+		"empty input": {
+			give: make(map[uint]int),
+			conv: hasAnyValue,
+			want: nil,
+		},
+		"nil input": {
+			give: nil,
+			conv: hasAnyValue,
+			want: nil,
+		},
+		"nil func": {
+			give: map[uint]int{
+				1: 1,
+				2: 2,
+				3: 3,
+			},
+			conv: nil,
+			want: nil,
+		},
+	}
+
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			require.ElementsMatch(t, tt.want, maps.Slice(tt.give, tt.conv))
+		})
+	}
 }

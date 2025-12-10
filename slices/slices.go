@@ -26,8 +26,19 @@ import (
 	"slices"
 )
 
+type (
+	// A PredicateFunc returns true or false based off of a provided value.
+	PredicateFunc[T any] = func(T) bool
+	// A TransformFunc (infallibly) transforms an object of type In into an
+	// object of type Out, returning the result.
+	TransformFunc[In any, Out any] = func(In) Out
+	// A TransformErrorFunc transforms an object of type In into an object of
+	// type Out, returning the result or an error.
+	TransformErrorFunc[In any, Out any] = func(In) (Out, error)
+)
+
 // HasPrefix evaluates if x contains prefix as its first len(prefix) elements.
-func HasPrefix[S ~[]T, T comparable](x S, prefix []T) bool {
+func HasPrefix[S ~[]T, T comparable](x S, prefix S) bool {
 	plen := len(prefix)
 	if plen > len(x) {
 		return false
@@ -36,7 +47,7 @@ func HasPrefix[S ~[]T, T comparable](x S, prefix []T) bool {
 }
 
 // Filter returns a copy of x with any elements for which pred returns true.
-func Filter[S ~[]T, T any, P ~func(T) bool](x S, pred P) []T {
+func Filter[S ~[]T, T any, Fn ~PredicateFunc[T]](x S, pred Fn) []T {
 	if len(x) == 0 {
 		return nil
 	}
@@ -58,17 +69,17 @@ func Filter[S ~[]T, T any, P ~func(T) bool](x S, pred P) []T {
 
 // Transform returns a copy of x with all elements' values passed through the
 // given mapping function.
-func Transform[S ~[]In, In any, Out any, P ~func(In) Out](
+func Transform[S ~[]In, In any, Out any, Fn ~TransformFunc[In, Out]](
 	x S,
-	mapper P,
+	transform Fn,
 ) []Out {
-	if len(x) == 0 || mapper == nil {
+	if len(x) == 0 || transform == nil {
 		return nil
 	}
 
 	dst := make([]Out, len(x))
 	for i := range x {
-		dst[i] = mapper(x[i])
+		dst[i] = transform(x[i])
 	}
 
 	return dst
@@ -78,11 +89,11 @@ func Transform[S ~[]In, In any, Out any, P ~func(In) Out](
 // the given mapping function. If an error is encountered, iteration halts, any
 // transformed items are discarded, and the error is immediately returned to
 // the caller.
-func TransformError[S ~[]In, In any, Out any, P ~func(In) (Out, error)](
+func TransformError[S ~[]In, In any, Out any, Fn ~TransformErrorFunc[In, Out]](
 	x S,
-	mapper P,
+	transform Fn,
 ) ([]Out, error) {
-	if len(x) == 0 || mapper == nil {
+	if len(x) == 0 || transform == nil {
 		return nil, nil
 	}
 
@@ -91,7 +102,7 @@ func TransformError[S ~[]In, In any, Out any, P ~func(In) (Out, error)](
 		err error
 	)
 	for i := range x {
-		if dst[i], err = mapper(x[i]); err != nil {
+		if dst[i], err = transform(x[i]); err != nil {
 			return nil, err
 		}
 	}
@@ -99,12 +110,57 @@ func TransformError[S ~[]In, In any, Out any, P ~func(In) (Out, error)](
 	return dst, nil
 }
 
+// Count counts the number of elements in s for which pred returns true.
+func Count[S ~[]T, T any, P ~PredicateFunc[T]](s S, pred P) int {
+	var n int
+	for i := range s {
+		if pred(s[i]) {
+			n++
+		}
+	}
+	return n
+}
+
+// CountPtr counts the number of elements in s for which pred returns true.
+func CountPtr[S ~[]T, T any, P ~PredicateFunc[*T]](s S, pred P) int {
+	var n int
+	for i := range s {
+		if pred(&s[i]) {
+			n++
+		}
+	}
+	return n
+}
+
 // Iter returns an [iter.Seq[V]] that ranges over s.
-func Iter[T ~[]V, V any](s T) iter.Seq[V] {
+func Iter[S ~[]T, T any](s S) iter.Seq[T] {
 	return slices.Values(s)
 }
 
 // Iter2 returns an [iter.Seq[int, V]] that ranges over s.
-func Iter2[T ~[]V, V any](s T) iter.Seq2[int, V] {
+func Iter2[S ~[]T, T any](s S) iter.Seq2[int, T] {
 	return slices.All(s)
+}
+
+// An AssociativeFunc outputs both a key and value from a single input.
+type AssociativeFunc[In any, OutK comparable, OutV any] = func(In) (OutK, OutV)
+
+// Map converts s into map[OutK]OutV according to fn.
+func Map[
+	OutK comparable,
+	OutV any,
+	S ~[]In,
+	F AssociativeFunc[In, OutK, OutV],
+	In any,
+](s S, fn F) map[OutK]OutV {
+	if len(s) == 0 || fn == nil {
+		return nil
+	}
+
+	dst := make(map[OutK]OutV, len(s))
+	for i := range s {
+		k, v := fn(s[i])
+		dst[k] = v
+	}
+	return dst
 }
